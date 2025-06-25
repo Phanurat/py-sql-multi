@@ -19,6 +19,77 @@ def scan_dbs():
 def index():
     return send_from_directory('.','index.html')
 
+# Group ID table
+@app.route('/group_id')
+def group_id():
+    return send_from_directory('.','group_id.html')
+# Group ID API
+@app.route('/like-and-comment')
+def like_and_comment():
+    return send_from_directory('.','like_and_comment.html')
+#=================================
+# like-comment-reply
+@app.route('/like-comment-reply')
+def like_comment_reply():
+    return send_from_directory('.','like_comment_reply.html')
+#=================================
+# like-comment-only
+@app.route('/like-comment-only')
+def like_comment_reply_only():
+    return send_from_directory('.','like_comment_only.html')
+#=================================
+# like-only
+@app.route('/like-only')
+def like_only():
+    return send_from_directory('.','like_only.html')
+#=================================
+# like-reel-comment
+@app.route('/like-reel-comment')
+def like_reel_comment():
+    return send_from_directory('.','like_reel_comment.html')
+#=================================
+# like-reel-only
+@app.route('/like-reel-only')
+def like_reel_only():
+    return send_from_directory('.','like_reel_only.html')
+#=================================
+
+# pic-cation-text
+@app.route('/pic-cation-text')
+def pic_cation_text():
+    return send_from_directory('.','pic_cation_text.html')
+#=================================
+# pic-status
+@app.route('/pic-status')
+def pic_status():
+    return send_from_directory('.','pic_status.html')
+#=================================
+# set-status-text
+@app.route('/set-status-text')
+def set_status_text():
+    return send_from_directory('.','set_status_text.html')
+#=================================
+# share-link
+@app.route('/share-link')
+def share_link():
+    return send_from_directory('.','share_link.html')
+#=================================
+# share-link-text
+@app.route('/share-link-text')
+def share_link_text():
+    return send_from_directory('.','share_link_text.html')
+#=================================
+#subscribe-id
+@app.route('/subscribe-id')
+def subscribe_id():
+    return send_from_directory('.','subscribe_id.html')
+#=================================
+#unsubscribe-id
+@app.route('/unsubscribe-id')
+def unsubscribe_id():
+    return send_from_directory('.','unsubscribe_id.html')
+#=================================
+
 @app.route('/api/projects')
 def list_projects():
     return jsonify(list(db_files.keys()))
@@ -51,10 +122,30 @@ def update_table(project, table):
     if not db_path: return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
 
     data = request.json
-    threading.Thread(target=save_data, args=(db_path, table, data)).start()
+    threading.Thread(target=save_data_app_profile, args=(db_path, table, data)).start()
     return jsonify({"status": "updating in background"})
 
-def save_data(db_path, table, data):
+#test for api
+@app.route('/api/update/<project>/<table>?media_id=<meta_id>', methods=['POST'])
+def update_api_media(project, table, meta_id):
+    db_path = db_files.get(project)
+    if not db_path: return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    data = request.json
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    cur.execute(f"DELETE FROM {table} WHERE media_id = ?", (meta_id,))
+    cols = data["columns"]
+    for row in data["rows"]:
+        placeholders = ",".join(["?"] * len(cols))
+        cur.execute(f"INSERT INTO {table} ({','.join(cols)}) VALUES ({placeholders})", row)
+
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "updating in background"})
+
+def save_data_app_profile(db_path, table, data):
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
