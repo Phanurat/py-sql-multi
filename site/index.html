@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Dashboard Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .excel-like-cell {
+            min-width: 150px;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f8fafc;
+        }
+
+        .action-btn {
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+            z-index: 20;
+            border-radius: 4px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .excel-like-cell {
+                min-width: 100px;
+                font-size: 14px;
+                padding: 6px 8px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold text-gray-800">News Dashboard Control Panel</h1>
+            <div class="flex space-x-3">
+                <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md flex items-center">
+                    <i class="fas fa-plus mr-2"></i> Add News
+                </button>
+                <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center">
+                    <i class="fas fa-file-export mr-2"></i> Export
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div class="p-4 border-b flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="relative">
+                        <input type="text" placeholder="Search news..." class="pl-10 pr-4 py-2 border rounded-md w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">Filter:</span>
+                        <select class="border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option>All</option>
+                            <option>Popular</option>
+                            <option>Recent</option>
+                            <option>Trending</option>
+                        </select>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="text-gray-600 mr-2">Sort:</span>
+                        <select class="border rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option>Newest First</option>
+                            <option>Oldest First</option>
+                            <option>Most Likes</option>
+                            <option>Most Comments</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="sticky-header border-b">
+                            <th class="excel-like-cell font-semibold text-gray-700 bg-gray-100">#</th>
+                            <th class="excel-like-cell font-semibold text-gray-700 bg-gray-100">Topic News</th>
+                            <th class="excel-like-cell font-semibold text-gray-700 bg-gray-100">Link News</th>
+                            <th class="excel-like-cell font-semibold text-gray-700 bg-gray-100">Reaction</th>
+                            <th class="excel-like-cell font-semibold text-gray-700 bg-gray-100">Like Value</th>
+                            <th class="excel-like-cell font-semibold text-gray-700 bg-gray-100">Comment Value</th>
+                            <th class="excel-like-cell font-semibold text-gray-700 bg-gray-100">Script Control</th>
+                        </tr>
+                    </thead>
+                    <tbody id="newsTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="p-4 border-t flex justify-between items-center">
+                <div class="text-gray-600">
+                    Showing <span id="startItem">1</span> to <span id="endItem">10</span> of <span id="totalItems">50</span> entries
+                </div>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 border rounded-md hover:bg-gray-100" id="prevPage">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="px-3 py-1 border rounded-md bg-blue-600 text-white">1</button>
+                    <button class="px-3 py-1 border rounded-md hover:bg-gray-100">2</button>
+                    <button class="px-3 py-1 border rounded-md hover:bg-gray-100">3</button>
+                    <button class="px-3 py-1 border rounded-md hover:bg-gray-100" id="nextPage">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    async function populateTableFromAPI() {
+        const project = 'news_project';
+        const table = 'news_table';
+
+        try {
+            const res = await fetch(`/api/${project}/${table}`);
+            const data = await res.json();
+
+            const tableBody = document.getElementById('newsTableBody');
+            tableBody.innerHTML = '';
+
+            if (!data.rows) return;
+
+            data.rows.forEach((row, i) => {
+                const [id, topic, link, reaction, likeValue, commentValue, status] = row;
+
+                let reactionColor = reaction === 'Positive' ? 'text-green-600'
+                                  : reaction === 'Negative' ? 'text-red-600'
+                                  : reaction === 'Mixed' ? 'text-yellow-600'
+                                  : 'text-gray-600';
+
+                let statusColor = status === 'Active' ? 'bg-green-100 text-green-800'
+                                 : status === 'Pending' ? 'bg-yellow-100 text-yellow-800'
+                                 : 'bg-gray-100 text-gray-800';
+
+                const rowHTML = `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="excel-like-cell text-gray-600">${i + 1}</td>
+                    <td class="excel-like-cell font-medium text-gray-800">${topic}</td>
+                    <td class="excel-like-cell text-blue-600 hover:underline">
+                        <a href="${link}" target="_blank">View Article</a>
+                    </td>
+                    <td class="excel-like-cell ${reactionColor}">
+                        <i class="fas ${reaction === 'Positive' ? 'fa-thumbs-up' : reaction === 'Negative' ? 'fa-thumbs-down' : 'fa-meh'} mr-1"></i>
+                        ${reaction}
+                    </td>
+                    <td class="excel-like-cell text-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-heart text-red-500 mr-2"></i>
+                            ${likeValue.toLocaleString()}
+                            <span class="ml-2 text-xs ${likeValue > 2000 ? 'text-green-600' : 'text-gray-500'}">
+                                ${likeValue > 2000 ? '(+12%)' : '(+3%)'}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="excel-like-cell text-gray-700">
+                        <div class="flex items-center">
+                            <i class="fas fa-comment text-blue-500 mr-2"></i>
+                            ${commentValue.toLocaleString()}
+                            <span class="ml-2 text-xs ${commentValue > 500 ? 'text-green-600' : 'text-gray-500'}">
+                                ${commentValue > 500 ? '(+8%)' : '(+2%)'}
+                            </span>
+                        </div>
+                    </td>
+                    <td class="excel-like-cell">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-1 text-xs rounded-full ${statusColor}">${status}</span>
+                        </div>
+                    </td>
+                </tr>`;
+
+                tableBody.innerHTML += rowHTML;
+            });
+
+            document.getElementById('startItem').textContent = '1';
+            document.getElementById('endItem').textContent = data.rows.length;
+            document.getElementById('totalItems').textContent = data.rows.length;
+
+        } catch (err) {
+            console.error('Error loading news data:', err);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', populateTableFromAPI);
+    document.getElementById('nextPage').addEventListener('click', () => alert('Fetching next page...'));
+    document.getElementById('prevPage').addEventListener('click', () => alert('Fetching previous page...'));
+    </script>
+</body>
+</html>

@@ -7,7 +7,105 @@ from flask import send_from_directory
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_files = {}
+DB_PATH = "news.db"
+#=========================================================================
+def init_db():
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS news (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic TEXT,
+            link TEXT,
+            reaction TEXT,
+            like_value INTEGER,
+            comment_value INTEGER,
+            timestamp TEXT DEFAULT (datetime('now', 'localtime')),
+            status TEXT,
+            log TEXT,
+            status_code TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
 
+init_db()
+
+@app.route('/api/insert/news', methods=['POST'])
+def insert_news():
+    data = request.get_json()
+    try:
+        topic = data['topic']
+        link = data['link']
+        reaction = data['reaction']
+        like_value = int(data['likeValue'])
+        comment_value = int(data['commentValue'])
+        timestamp = data.get('timestamp')  # ใช้ get ป้องกัน key error
+        status = data['status']
+        log = data['log']
+        status_code = data['status_code']
+
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        if timestamp:
+            cur.execute('''
+                INSERT INTO news (topic, link, reaction, like_value, comment_value, timestamp, status, log, status_code)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (topic, link, reaction, like_value, comment_value, timestamp, status, log, status_code))
+        else:
+            cur.execute('''
+                INSERT INTO news (topic, link, reaction, like_value, comment_value, status, log, status_code)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (topic, link, reaction, like_value, comment_value, status, log, status_code))
+
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'success'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/get/news', methods=['GET'])
+def get_news():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM news ORDER BY id DESC")
+        rows = cur.fetchall()
+        conn.close()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error at /api/get/news: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/update/news', methods=['POST'])
+def update_news():
+    conn = None
+    try:
+        data = request.get_json()
+        log_value = data['log']
+
+        conn = sqlite3.connect(DB_PATH, timeout=5)  # ✅ ป้องกัน locked
+        cur = conn.cursor()
+        cur.execute('''
+            UPDATE news SET status = 'used' WHERE log = ?
+        ''', (log_value,))
+        conn.commit()
+        updated_rows = cur.rowcount
+
+        return jsonify({'status': 'success', 'updated': updated_rows})
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+#================================================================================================
 def scan_dbs():
     for folder in os.listdir(BASE_DIR):
         path = os.path.join(BASE_DIR, folder, "fb_comment_system.db")
@@ -17,6 +115,10 @@ def scan_dbs():
 @app.route('/')
 def index():
     return jsonify(list(db_files.keys()))
+
+@app.route('/dashboard')
+def dashboard():
+    return send_from_directory('.','dashboard.html')
 
 @app.route('/api/<project>')
 def app_profiles(project):
