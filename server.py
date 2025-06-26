@@ -86,24 +86,23 @@ def update_news():
     conn = None
     try:
         data = request.get_json()
-        log_value = data['log']
+        log_value = data['log']  # ⚠️ ถ้าไม่มี key นี้ จะ Error
 
-        conn = sqlite3.connect(DB_PATH, timeout=5)  # ✅ ป้องกัน locked
+        conn = sqlite3.connect(DB_PATH, timeout=5)
         cur = conn.cursor()
         cur.execute('''
-            UPDATE news SET status = 'used' WHERE log = ?
+            UPDATE news SET log = 'used' WHERE log = ?
         ''', (log_value,))
         conn.commit()
         updated_rows = cur.rowcount
 
-        return jsonify({'status': 'success', 'updated': updated_rows})
+        return jsonify({'log': 'success', 'updated': updated_rows})
     except Exception as e:
         print("❌ Error:", e)
         return jsonify({'error': str(e)}), 500
     finally:
         if conn:
             conn.close()
-
 
 #================================================================================================
 def scan_dbs():

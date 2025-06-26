@@ -3,6 +3,41 @@ import time
 
 url = "http://127.0.0.1:5000"
 
+def process_run_script():
+    data = check_data_news()
+    # Check Script
+    unused_rows = [row for row in data if row.get('log') == 'unused']
+    
+    for row in unused_rows:
+        status = row.get('status')
+        if status == 'like_and_comment':
+            print("Run Script Like and Comment")
+        elif status == 'like_comment_reply_comment':
+            print("Run Script Like Comment Reply Comment")
+        elif status == 'like_comment_only':
+            print("Run Script Like Comment Only")
+        elif status == 'like_only':
+            print("Run Script Like Only")
+        elif status == 'like_reel_comment_reel':
+            print("Run Script Like Reel Comment Reel")
+        elif status == 'like_reel_only':
+            print("Run Script Like Reel Only")
+        elif status == 'shared_link_text':
+            print("Run Script Shared Link Text")
+        elif status == 'shared_link':
+            print("Run Script Shared Link")
+        elif status == 'subscribee_id':
+            print("Run Script Subscribee ID")
+        elif status == 'unsubscribe_id':
+            print("Run Script Unsubscribee ID")
+        else:
+            print("⚠️ ไม่พบ status ที่กำหนดไว้")
+
+        # สมมุติว่ารัน script แต่ละตัว (mock)
+        # print("Run Script!!!")
+        time.sleep(2)
+
+
 def check_data_news():
     try:
         response = requests.get(f"{url}/api/get/news")
@@ -17,9 +52,11 @@ def check_data_news():
 
 def update_log_to_used(log_value="unused", retries=3, delay=1):
     payload = { "log": log_value }
+    data = check_data_news()
 
     for attempt in range(retries):
         try:
+            process_run_script()
             res = requests.post(f"{url}/api/update/news", json=payload)
             res.raise_for_status()
             print("✅ Updated successfully:", res.json())
