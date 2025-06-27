@@ -8,6 +8,153 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_files = {}
 DB_PATH = "news.db"
+
+#=========================================================================
+# save like reel and comment reel
+@app.route('/api/update/<project>/like-reel-and-comment-reel', methods=['POST'])
+def like_reel_and_comment_reel_table(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+    comment_text = request.args.get("comment_text")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM like_reel_and_comment_reel_table")
+        cur.execute("""INSERT INTO like_reel_and_comment_reel_table (reaction_type, link, comment_text)
+            VALUES (?, ?, ?)
+        """, (reaction_type, link, comment_text))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+        
+#=========================================================================
+# save like comment only
+@app.route('/api/update/<project>/like-only', methods=['POST'])
+def like_only_table(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM like_only_table")
+        cur.execute("""
+            INSERT INTO like_only_table (reaction_type, link)
+            VALUES (?, ?)
+            """, (reaction_type, link))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# save like comment only
+@app.route('/api/update/<project>like-comment-only', methods=['POST'])
+def like_comment_only_table(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+    
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM like_comment_only_table")
+        cur.execute("""
+            INSERT INTO like_comment_only_table (reaction_type, link)
+            VALUES (?, ?)
+        """, (reaction_type, link))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# save like and reply comment
+@app.route('/api/like-comment-reply/<project>', methods=['POST'])
+def like_comment_reply_table(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        # ลบข้อมูลเก่าทั้งหมดก่อนเพิ่มใหม่
+        cur.execute("DELETE FROM like_comment_and_reply_comment_table")
+
+        # เพิ่มข้อมูลใหม่เข้าไป
+        cur.execute("""
+            INSERT INTO like_comment_and_reply_comment_table (reaction_type, link)
+            VALUES (?, ?)
+        """, (reaction_type, link))
+
+        conn.commit()
+        return jsonify({"success": True, "message": "บันทึกสำเร็จ"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# save like and comment
+@app.route('/api/like-and-comment/<project>')
+def like_and_comment_table(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM like_and_comment_table")
+        cur.execute("""
+            INSERT INTO like_and_comment_table (reaction_type, link)
+            VALUES (?, ?)""", (reaction_type, link))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 #=========================================================================
 def init_db():
     conn = sqlite3.connect(DB_PATH)
