@@ -15,6 +15,150 @@ def check_dashboards():
     except requests.exceptions.RequestException as e:
         print("❌ Error fetching news:", e)
         return []
+
+def run_link_page_for_id_page(row, project):
+    page_id = row.get("page_id", "")
+
+    api_url = f"{url}/api/update/{project}/link-page-for-id-page?page_id={page_id}"
+
+    try:
+        response = requests.post(api_url)
+        if response.status_code == 200:
+            print(f"✅ บันทึก link_page_for_id_page สำเร็จ: {page_id}")
+        else:
+            print(f"❌ บันทึกล้มเหลว:", response.status_code)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
+
+
+def run_group_id(row, project):
+    group_id = row.get("group_id", "")
+
+    api_url = f"{url}/api/update/{project}/group-id?group_id={group_id}"
+
+    try:
+        response = requests.post(api_url)
+        if response.status_code == 200:
+            print(f"✅ บันทึก group_id สำเร็จ: {group_id}")
+        else:
+            print(f"❌ บันทึกล้มเหลว:", response.status_code)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
+
+def run_unsubscribee_id(row, project):
+    unsubscribee_id = row.get("unsubscribee_id", "")
+
+    api_url = f"{url}/api/update/{project}/unsubscribee-id?unsubscribee_id={unsubscribee_id}"
+
+    try:
+        response = requests.post(api_url)
+        if response.status_code == 200:
+            print(f"✅ บันทึก subscribee_id สำเร็จ: {unsubscribee_id}")
+        else:
+            print(f"❌ บันทึกล้มเหลว:", response.status_code)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
+
+def run_subscribee_id(row, project):
+    subscribee_id = row.get("subscribee_id", "")
+
+    api_url = f"{url}/api/update/{project}/subscribee-id?subscribee_id={subscribee_id}"
+
+    try:
+        response = requests.post(api_url)
+        if response.status_code == 200:
+            print(f"✅ บันทึก subscribee_id สำเร็จ: {subscribee_id}")
+        else:
+            print(f"❌ บันทึกล้มเหลว:", response.status_code)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
+
+def run_share_link_text(row, project):
+    status_text = row.get("status_text", "")
+    status_link = row.get("status_link", "")
+
+    api_url = f"{url}/api/update/{project}/share-link?status_text={status_text}&status_link={status_link}"
+    
+    try:
+        response = requests.post(api_url)
+        if response == 200:
+            print(f"✅ บันทึก share_link_text สำเร็จ: {status_text} | {status_link}")
+        else:
+            print(f"❌ บันทึกล้มเหลว:", response.status_code)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
+
+
+def run_share_link(row, project):
+    link_link = row.get("link_link", "")
+
+    api_url = f"{url}/api/update/{project}/share-link?link_link={link_link}"
+    try:
+        response = requests.post(api_url)
+        if response.status == 200:
+            print(f"✅ บันทึก share_link สำเร็จ: {link_link}")
+        else:
+            print(f"❌ บันทึกล้มเหลว:", response.status_code)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
+
+def run_set_status_text(row, project):
+    status_text = row.get("status_text", "")
+
+    api_url = f"{url}/api/update/{project}/set-status-text?status_text={status_text}"
+    try:
+        response = requests.post(api_url)
+        if response.status == 200:
+            print(f"✅ บันทึก set_status_text สำเร็จ: {status_text}")
+        else:
+            print(f"❌ บันทึกล้มเหลว:", response.status_code)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
+
+def run_pic_caption_text(row, project):
+    status_text = row.get("status_text", "")
+
+    api_url = f"{url}/api/update/{project}/pic-caption-text?status_text={status_text}"
+    try:
+        response = requests.post(api_url)
+        if response.status == 200:
+            print(f"✅ บันทึก pic_caption_text สำเร็จ: {status_text}")
+        else:
+            print(f"❌ บันทึกล้มเหลว:", response.status_code)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
+
+def run_like_reel_only(row, project):
+    reaction = row.get("reaction", "")
+    link = row.get("link", "")
+
+    api_url = f"{url}/api/update/{project}/like-reel-only?reaction_type={reaction}&link={link}"
+    try:
+        response = requests.post(api_url)
+        if response.status == 200:
+            print(f"✅ บันทึก like_reel_only สำเร็จ: {reaction} | {link}")
+        else:
+            print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
+    except Exception as e:
+        print("❌ Error POST:", e)
+
+    time.sleep(1)
     
 def run_like_reel_comment_reel(row, project):
     reaction = row.get("reaction", "")
@@ -132,6 +276,34 @@ def main():
 
         elif status == 'like_reel_comment_reel':
             run_like_reel_comment_reel(row, project)
+        
+        elif status == 'like_reel_only':
+            run_like_reel_only(row, project)
+        
+        elif status == 'pic_caption_text':
+            run_pic_caption_text(row, project)
+        
+        elif status == "set_status_text":
+            run_set_status_text(row, project)
+        
+        elif status == "share-link":
+            run_share_link(row, project)
+        
+        elif status == "share-link-text":
+            run_share_link_text(row, project)
+        
+        elif status == "subscribee_id":
+            run_subscribee_id(row, project)
+        
+        elif status == "unsubscribee_id":
+            run_unsubscribee_id(row, project)
+        
+        elif status == "group_id":
+            run_group_id(row, project)
+        
+        elif status == "link-page-for-id-page":
+            run_link_page_for_id_page(row, project)
+
 
         else:
             print(f"⚠️ ยังไม่มี handler สำหรับ status: {status} | project: {project}")

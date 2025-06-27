@@ -8,6 +8,308 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_files = {}
 DB_PATH = "news.db"
+#=========================================================================
+# like page for like table 
+@app.route('/api/update/<project>/link-page-for-like', methods=['POST'])
+def update_like_page_for_like_table(project):
+    db_path = db_files.get(project)
+    link_page = request.args.get("link_page")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM link_page_for_like_table")
+        cur.execute("""
+            INSERT INTO link_page_for_like_table (link_page)
+            VALUES (?)
+        """, (link_page, ))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "อัปเดตข้อมูลสำเร็จ"}), 200
+    
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
+#=========================================================================
+# link page for id page table
+@app.route('/api/update/<project>/link-page-for-id-page', methods=['POST'])
+def update_link_page_for_id_page(project):
+    db_path = db_files.get(project)
+    page_id = request.args.get("page_id")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM link_page_for_id_page_table")
+        cur.execute("""
+            INSERT INTO link_page_for_id_page_table (page_id)
+            VALUES (?)
+        """, (page_id, ))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "อัปเดตข้อมูลสำเร็จ"}), 200
+    
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# group_id
+@app.route('/api/update/<project>/group-id', methods=['POST'])
+def update_group_id_table(project):
+    db_path = db_files.get(project)
+    group_id = request.args.get("group_id")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM group_id_table")
+        cur.execute("""INSERT INTO group_id_table (group_id)
+            VALUES (?)""", (group_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "อัปเดตข้อมูลสำเร็จ"}), 200
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# unsubscripbee id 
+@app.route("/api/update/<project>/unsubscribee-id", methods=['POST'])
+def update_unsubscribee_id_table(project):
+    db_path = db_files.get(project)
+    unsubscribee_id = request.args.get("unsubscribee_id")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM unsubscribee_id_table")
+
+        cur.execute("""INSERT INTO unsubscribee_id_table (unsubscribee_id)
+            VALUES (?)""", (unsubscribee_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
+#=========================================================================
+# subscripbee id 
+@app.route("/api/update/<project>/subscribee-id", methods=['POST'])
+def update_subscribee_id_table(project):
+    db_path = db_files.get(project)
+    subscribee_id = request.args.get("subscribee_id")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM subscribee_id_table")
+
+        cur.execute("""INSERT INTO subscribee_id_table (subscribee_id)
+            VALUES (?)""", (subscribee_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# shared link text table
+@app.route('/api/update/<project>/share-link-text', methods=['POST'])
+def update_share_link_link_text_table(project):
+    db_path = db_files.get(project)
+    status_text = request.args.get("status_text")
+    status_link = request.args.get("status_link")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM shared_link_text_table")
+        cur.execute("""INSERT INTO shared_link_text_table (status_text, status_link)
+            VALUES (?, ?)""", (status_text, status_link))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+    except Exception as e:
+        print("❌ SQL Error:", e)  
+    
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# shared link 
+@app.route('/api/update/<project>/share-link', methods=['POST'])
+def update_share_link_link(project):
+    db_path = db_files.get(project)
+    link_link = request.args.get("link_link")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM shared_link_table")
+        cur.execute("""INSERT INTO shared_link_table (link_link) 
+                VALUES (?)""", (link_link,))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# save set status text
+@app.route('/api/update/<project>/set-status-text', methods=['POST'])
+def set_status_text_table(project):
+    db_path = db_files.get(project)
+    status_text = request.args.get("status_text")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        # ✅ ชื่อตารางที่ถูกต้องคือ set_status_text_table
+        cur.execute("DELETE FROM set_status_text_table")
+
+        # ✅ ต้องใส่ (status_text,) เป็น tuple
+        cur.execute("""
+            INSERT INTO set_status_text_table (status_text)
+            VALUES (?)
+        """, (status_text,))
+
+        conn.commit()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+
+    except Exception as e:
+        print("❌ SQL Error:", e)  # ช่วย debug
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
+
+#=========================================================================
+# save pic caption text
+@app.route('/api/update/<project>/pic-caption-text', methods=['POST'])
+def pic_caption_text_table(project):
+    db_path = db_files.get(project)
+    status_text = request.args.get("status_text")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM pic_caption_text_table")
+        cur.execute("""
+    INSERT INTO pic_caption_text_table (status_text)
+    VALUES (?)
+""", (status_text,))
+
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# save like reel and comment reel
+@app.route('/api/update/<project>/like-reel-only', methods=['POST'])
+def like_reel_only_table(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM like_reel_only_table")
+        cur = conn.cursor()
+
+        cur.execute("""INSERT INTO like_reel_only_table (reaction_type, link)
+            VALUES (?, ?)""", 
+            (reaction_type, link))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "บันทึกสำเร็จ"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
 
 #=========================================================================
 # save like reel and comment reel
