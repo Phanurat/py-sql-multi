@@ -458,7 +458,6 @@ def like_and_comment_table(project):
         if conn:
             conn.close()
 #=========================================================================
-
 #================================================================================================
 
 @app.route('/api/<project>')
@@ -1038,6 +1037,93 @@ def init_db():
     conn.close()
 
 init_db()
+#==============================================================================================================
+
+#======================================================================
+
+@app.route('/api/insert/caption-text', methods=['POST'])
+def insert_caption_text():
+    data = request.get_json()
+    caption_text = data.get("caption_text")
+    timestamp = data.get("timestamp")
+    log = data.get("log")
+    status_code = data.get("status_code")
+
+    if not all([caption_text, timestamp, log, status_code]):
+        return jsonify({'error': 'ข้อมูลไม่ครบ'}), 400
+
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            cur = conn.cursor()
+            cur.execute('''
+                INSERT INTO caption_text (caption_text, timestamp, log, status_code)
+                VALUES (?, ?, ?, ?)
+            ''', (caption_text, timestamp, log, status_code))
+            conn.commit()
+        return jsonify({'status': 'success'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/get/caption-text', methods=['GET'])
+def get_caption_text_page():
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM caption_text ORDER BY id DESC")
+            rows = cur.fetchall()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result), 200
+
+    except Exception as e:
+        print(f"❌ Error at /api/get/caption-text: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/insert/pic-caption', methods=['POST'])
+def insert_pic_caption():
+    data = request.get_json()  # ✅ รับจาก JSON body
+    caption_text = data.get("caption_text")
+    timestamp = data.get("timestamp")
+    log = data.get("log")
+    status_code = data.get("status_code")
+    try:
+        if not all([caption_text, timestamp, log, status_code]):
+            return jsonify({'error': 'ข้อมูลไม่ครบ'}), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute('''
+            INSERT INTO pic_caption_text (caption_text, timestamp, log, status_code)
+            VALUES (?, ?, ?, ?)
+        ''', (caption_text, timestamp, log, status_code))
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'success'}), 200  # ✅ ให้ตรงกับ JS ที่เช็ค result.status
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+    
+@app.route('/api/get/pic-caption', methods=['GET'])
+def get_pic_caption():
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM `pic_caption_text` ORDER BY id DESC")
+            rows = cur.fetchall()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result)
+
+    except Exception as e:
+        print(f"❌ Error at /api/get/pic-caption: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/insert/group', methods=['POST'])
 def insert_group():
