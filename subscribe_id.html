@@ -1,153 +1,285 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-  <meta charset="utf-8">
-  <title>📊 SQLite Subscribe ID Editor</title>
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.0.0/dist/handsontable.full.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.0.0/dist/handsontable.full.min.css">
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      font-family: sans-serif;
-      background-color: #f9f9f9;
-      overflow: hidden;
-    }
-    #toolbar {
-      height: 48px;
-      background-color: #eaeaea;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 0 12px;
-      border-bottom: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    #hot {
-      position: absolute;
-      top: 48px;
-      left: 0;
-      right: 0;
-      bottom: 0;
-    }
-    button {
-      font-size: 14px;
-      padding: 6px 12px;
-    }
-  </style>
-</head>
-<body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Dashboard Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .excel-like-cell {
+            min-width: 150px;
+            max-width: 300px;
+            max-height: 60px;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            overflow: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
 
-<div id="toolbar">
-  <a href="/">Home</a>
-  <button onclick="loadAllAppProfiles()">🔄 Load All Projects</button>
-  <button onclick="saveAllAppProfiles()">💾 Save</button>
-  <a href="/group_id">Group ID</a>
-  <a href="/like-and-comment">Like and Comment</a>
-  <a href="/like-comment-reply">Like Comment Reply</a>
-  <a href="/like-comment-only">Like Comment Only</a>
-  <a href="/like-only">Like Only</a>
-  <a href="/like-reel-comment">Like Reel Comment</a>
-  <a href="/like-reel-only">Like Reel Only</a>
-  <a href="/pic-cation-text">Pic Caption Text</a>
-  <a href="/pic-status">Pic Status</a>
-  <a href="/set-status-text">Set Status Text</a>
-  <a href="/shared-link">Shared Link</a>
-  <a href="/shared-link-text">Shared Link Text</a>
+        .excel-like-cell::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
 
-  <a href="/subscribe-id">Subscribe ID</a>
-  <a href="/unsubscribe-id">Unsubscribe ID</a>
-</div>
+        .excel-like-cell::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
 
-<div id="hot"></div>
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f8fafc;
+        }
 
-<script>
-  const hotDiv = document.getElementById("hot");
-  let hot;
-  let currentHeaders = [];
+        .modal-enter {
+            animation: modalFadeIn 0.3s ease-out forwards;
+        }
 
-  function loadAllAppProfiles() {
-    fetch('/api/projects')
-      .then(res => res.json())
-      .then(projects => {
-        const promises = projects.map(p =>
-          fetch(`/api/data/${p}`)
-            .then(res => res.json())
-            .then(data => {
-              if (data && data.app_profiles) {
-                return data.app_profiles.rows.map(row => [p, ...row]);
-              } else {
-                return [];
-              }
-            })
-        );
+        .modal-exit {
+            animation: modalFadeOut 0.2s ease-in forwards;
+        }
 
-        Promise.all(promises).then(results => {
-          const flatRows = results.flat();
-          fetch(`/api/data/${projects[0]}`).then(res => res.json()).then(data => {
-            const headers = ["project", ...data.app_profiles.columns];
-            currentHeaders = headers;
-
-            if (hot) {
-              hot.destroy();
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
             }
 
-            const colWidths = headers.map(h => {
-              if (h.toLowerCase().includes("token") || h.toLowerCase().includes("agent")) return 200;
-              if (h.toLowerCase().includes("name")) return 120;
-              if (h === "project") return 80;
-              return 100;
-            });
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-            hot = new Handsontable(hotDiv, {
-              data: flatRows,
-              colHeaders: headers,
-              rowHeaders: true,
-              contextMenu: true,
-              manualRowMove: true,
-              manualColumnResize: true,
-              stretchH: 'last',
-              width: '100%',
-              height: '100%',
-              colWidths: colWidths,
-              licenseKey: 'non-commercial-and-evaluation'
-            });
-          });
+        @keyframes modalFadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+    </style>
+
+</head>
+
+<body class="bg-gray-50 font-sans">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-6">News Dashboard Control Panel</h1>
+        <div class="flex flex-wrap gap-3 mb-6">
+            <a href="/dashboard"
+                class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Home
+            </a>
+            <a href="/app-profiles"
+                class="bg-gray-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                App Profiles
+            </a>
+            <a href="/group"
+                class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Group
+            </a>
+            <a href="/pic-caption"
+                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Pic Caption
+            </a>
+            <a href="/caption-text"
+                class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Caption Text
+            </a>
+            <a href="/set-status-text"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Set Status Text
+            </a>
+            <a href="/shared-link"
+                class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Shared Link
+            </a>
+            <a href="/shared-link-text"
+                class="bg-pink-600 hover:bg-pink-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Shared Link Text
+            </a>
+            <a href="/subscribe-id"
+                class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Subscribe ID
+            </a>
+            <a href="/unsubscribe-id"
+                class="bg-gray-700 hover:bg-gray-800 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">
+                Unsubscribe ID
+            </a>
+        </div>
+
+        <form id="newsForm" class="bg-white rounded-lg shadow-md p-6 space-y-4">
+            <div>
+                <label class="block mb-1 text-gray-700">Topic News</label>
+                <input type="text" id="topic" class="w-full border px-4 py-2 rounded-md" required>
+            </div>
+            <div>
+                <label class="block mb-1 text-gray-700">Link News</label>
+                <input type="url" id="link" class="w-full border px-4 py-2 rounded-md" required>
+            </div>
+            <div>
+                <label class="block mb-1 text-gray-700">Reaction</label>
+                <select id="reaction" class="w-full border px-4 py-2 rounded-md">
+                    <option value="Like">Like</option>
+                    <option value="Love">Love</option>
+                    <option value="Haha">Haha</option>
+                    <option value="Wow">Wow</option>
+                    <option value="Sad">Sad</option>
+                    <option value="Angry">Angry</option>
+                </select>
+            </div>
+            <div>
+                <label class="block mb-1 text-gray-700">Like Value</label>
+                <input type="number" id="likeValue" class="w-full border px-4 py-2 rounded-md" value=0 required>
+            </div>
+            <div>
+                <label class="block mb-1 text-gray-700">Comment Value</label>
+                <input type="number" id="commentValue" class="w-full border px-4 py-2 rounded-md" value=0 required>
+            </div>
+            <div>
+                <label class="block mb-1 text-gray-700">Status</label>
+                <select id="status" class="w-full border px-4 py-2 rounded-md">
+                    <option value="like_and_comment">Like and Comment</option>
+                    <option value="like_and_reply_comment">Like and Reply Comment</option>
+                    <option value="like_comment_only">Like Comment Only</option>
+                    <option value="like_only">Like Only</option>
+                    <option value="like_reel_comment_reel">Like Reel Comment And Comment Reel</option>
+                    <option value="like_reel_only">Like Reel Only</option>
+                    <option value="shared_link">Shared Link</option>
+                    <option value="shared_link_text">Shared Link Text</option>
+                    <option value="subscribe_id">Subscribe Id</option>
+                    <option value="unsubscribe">Unsubscribe</option>
+                </select>
+            </div>
+            <div>
+                <label class="block mb-1 text-gray-700">Log</label>
+                <select id="log" class="w-full border px-4 py-2 rounded-md">
+                    <option value="unused">Unused</option>
+                    <!---<option value="used">Used</option>--->
+                </select>
+            </div>
+            <div>
+                <label class="block mb-1 text-gray-700">Status Code</label>
+                <select id="status_code" class="w-full border px-4 py-2 rounded-md">
+                    <option value="wait_code">Wait Status .....</option>
+                </select>
+            </div>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md">Add
+                News</button>
+        </form>
+
+        <div class="mt-10 bg-white rounded-lg shadow-md overflow-hidden">
+            <table class="w-full">
+                <thead>
+                    <tr class="sticky-header border-b">
+                        <th class="excel-like-cell">#</th>
+                        <th class="excel-like-cell">Topic</th>
+                        <th class="excel-like-cell">Link</th>
+                        <th class="excel-like-cell">Reaction</th>
+                        <th class="excel-like-cell">Likes</th>
+                        <th class="excel-like-cell">Comments</th>
+                        <th class="excel-like-cell">Timestamp</th>
+                        <th class="excel-like-cell">Status</th>
+                        <th class="excel-like-cell">Log</th>
+                        <th class="excel-like-cell">Status Code</th>
+                    </tr>
+                </thead>
+                <tbody id="newsTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('newsForm');
+        const tableBody = document.getElementById('newsTableBody');
+        let count = 1;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const topic = document.getElementById('topic').value;
+            const link = document.getElementById('link').value;
+            const reaction = document.getElementById('reaction').value;
+            const likeValue = parseInt(document.getElementById('likeValue').value);
+            const commentValue = parseInt(document.getElementById('commentValue').value);
+            const timestamp = new Date().toLocaleString('th-TH');
+            const status = document.getElementById('status').value;
+            const log = document.getElementById('log').value;
+            const status_code = document.getElementById('status_code').value;
+
+            fetch('/api/insert/news', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ topic, link, reaction, likeValue, commentValue, timestamp, status, log, status_code })
+            })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.status === 'success') {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+    <td class="excel-like-cell">${count++}</td>
+    <td class="excel-like-cell">${topic}</td>
+    <td class="excel-like-cell"><a href="${link}" class="text-blue-600 underline" target="_blank">${link}</a></td>
+    <td class="excel-like-cell">${reaction}</td>
+    <td class="excel-like-cell">${likeValue.toLocaleString()}</td>
+    <td class="excel-like-cell">${commentValue.toLocaleString()}</td>
+    <td class="excel-like-cell">${timestamp}</td>
+    <td class="excel-like-cell">${status}</td>
+    <td class="excel-like-cell">${log}</td>
+    <td class="excel-like-cell">${status_code}</td>
+`;
+
+                        tableBody.appendChild(row);
+                        form.reset();
+                    } else {
+                        alert('❌ Error: ' + result.error);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("❌ Failed to connect to server");
+                });
         });
-      });
-  }
 
-  function saveAllAppProfiles() {
-    const allData = hot.getData();
-    const grouped = {};
-    const columns = currentHeaders.slice(1); // remove project column
+        function fetchAndRenderNews() {
+            fetch('/api/get/news')
+                .then(res => res.json())
+                .then(data => {
+                    data.forEach(news => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="excel-like-cell">${news.id}</td>
+                            <td class="excel-like-cell">${news.topic}</td>
+                            <td class="excel-like-cell"><a href="${news.link}" class="text-blue-600 underline" target="_blank">${news.link}</a></td>
+                            <td class="excel-like-cell">${news.reaction}</td>
+                            <td class="excel-like-cell">${Number(news.like_value).toLocaleString()}</td>
+                            <td class="excel-like-cell">${Number(news.comment_value).toLocaleString()}</td>
+                            <td class="excel-like-cell">${news.timestamp}</td>
+                            <td class="excel-like-cell">${news.status}</td>
+                            <td class="excel-like-cell">${news.log}</td>
+                            <td class="excel-like-cell">${news.status_code}</td>
+                            `;
+                        document.getElementById('newsTableBody').appendChild(row);
+                    });
+                })
+                .catch(err => {
+                    console.error("❌ Error fetching news:", err);
+                });
+        }
 
-    for (const row of allData) {
-      const project = row[0];
-      const values = row.slice(1);
-      if (!grouped[project]) grouped[project] = [];
-      grouped[project].push(values);
-    }
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchAndRenderNews(); // โหลดข่าวจาก DB
+        });
 
-    for (const [project, rows] of Object.entries(grouped)) {
-      const payload = JSON.stringify({ columns, rows });
-      fetch(`/api/update/${project}/app_profiles`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: payload
-      })
-        .then(res => res.json())
-        .then(msg => console.log(`[✓] ${project}`, msg));
-    }
-    alert("✅ ข้อมูลถูกส่งไปอัปเดตแบบ background");
-  }
-
-  window.addEventListener("resize", () => {
-    if (hot) hot.render();
-  });
-</script>
-
+    </script>
 </body>
+
 </html>
