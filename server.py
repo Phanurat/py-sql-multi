@@ -536,16 +536,17 @@ def update_news():
     try:
         data = request.get_json()
         log_value = data['log']  # ⚠️ ถ้าไม่มี key นี้ จะ Error
+        row_id = data['id'] 
 
         conn = sqlite3.connect(DB_PATH, timeout=5)
         cur = conn.cursor()
         cur.execute('''
-            UPDATE news SET log = 'used' WHERE log = ?
-        ''', (log_value,))
+            UPDATE news SET log = 'used' WHERE log = ? AND id = ?
+        ''', (log_value, row_id, ))
         conn.commit()
         updated_rows = cur.rowcount
 
-        return jsonify({'log': 'success', 'updated': updated_rows})
+        return jsonify({'log': 'success', 'id' : row_id, 'updated': updated_rows})
     except Exception as e:
         print("❌ Error:", e)
         return jsonify({'error': str(e)}), 500
