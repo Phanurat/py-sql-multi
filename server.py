@@ -1040,6 +1040,80 @@ init_db()
 #==============================================================================================================
 
 #======================================================================
+@app.route('/api/insert/unsubscribe-id', methods=['POST'])
+def insert_unsubscribe_id():
+    unsubscribe_id = request.args.get("unsubscribee_id")
+    log = request.args.get("log")
+    timestamp = request.args.get("timestamp")
+    status_code = request.args.get("status_code")
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO unsubscribee (unsubscribee_id, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)
+        """,(unsubscribe_id, log, timestamp, status_code))
+        conn.commit()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/unsubscribe-id', methods=['GET'])
+def get_unsubscribe_id():
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM unsubscribee ORDER BY id DESC")
+            rows = cur.fetchall()
+        result = [dict(row) for row in rows]
+        return jsonify(result), 200
+    except Exception as e:
+        print(f"❌ Error at /api/get/unsubscribe-id: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/insert/subscribe-id', methods=['POST'])
+def insert_subscribe_id():
+    subscribe_id = request.args.get("subscribee_id")
+    log = request.args.get("log")
+    timestamp = request.args.get("timestamp")
+    status_code = request.args.get("status_code")
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO subscribee (subscribee_id, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)
+        """,(subscribe_id, log, timestamp, status_code))
+        conn.commit()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/subscribe-id', methods=['GET'])
+def get_subscribe_id():
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM subscribee ORDER BY id DESC")
+            rows = cur.fetchall()
+        result = [dict(row) for row in rows]
+        return jsonify(result), 200
+    except Exception as e:
+        print(f"❌ Error at /api/get/subscribe-id: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/insert/shared-link-text', methods=['POST'])
 def insert_shared_link_text():
     try:
