@@ -1040,6 +1040,135 @@ init_db()
 #==============================================================================================================
 
 #======================================================================
+@app.route('/api/insert/shared-link-text', methods=['POST'])
+def insert_shared_link_text():
+    try:
+        data = request.get_json()
+        status_text = data.get("status_text")
+        status_link = data.get("status_link")
+        timestamp = data.get("timestamp")
+        log = data.get("log")
+        status_code = data.get("status_code")
+
+        if not all([status_text, status_link, timestamp, log, status_code]):
+            return jsonify({"error": "ข้อมูลไม่ครบ"}), 400
+
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO shared_link_text (status_link, status_text, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?, ?)
+        """, (status_link, status_text, log, timestamp, status_code))
+        conn.commit()
+        return jsonify({"status": "success"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+@app.route('/api/get/shared-link-text', methods=['GET'])
+def get_shared_link_text():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM shared_link_text ORDER BY id DESC")
+        rows = cur.fetchall()
+        conn.close()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result), 200  # ✅ ต้องมี return แบบนี้เสมอ
+
+    except Exception as e:
+        print(f"❌ Error at /api/get/shared-link-text: {e}")
+        return jsonify({"error": str(e)}), 500  # ✅ ต้องมี return เสมอ
+
+@app.route('/api/insert/shared-link', methods=['POST'])
+def insert_shared_link():
+    link_link = request.args.get("link_link")
+    log = request.args.get("log")
+    timestamp = request.args.get("timestamp")
+    status_code = request.args.get("status_code")
+    
+    try:
+        conn = sqlite3.connect(DB_PATH)  # ✅ ระบุ path DB
+        cur = conn.cursor()
+
+        # ✅ commit ต้องใช้กับ connection ไม่ใช่ cursor
+        cur.execute("""
+            INSERT INTO shared_link (link_link, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)""", (link_link, log, timestamp, status_code))
+        
+        conn.commit()  # แก้จาก cur.commit() เป็น conn.commit()
+        return jsonify({"status": "success"}), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/shared-link', methods=['GET'])
+def get_shared_link():
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM shared_link ORDER BY id DESC")
+
+            rows = cur.fetchall()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result), 200
+
+    except Exception as e:
+        print(f"❌ Error at /api/get/set-status-text: {e}")
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/api/insert/set-status-text', methods=['POST'])
+def insert_set_status_text():
+    status_text = request.args.get("status_text")      # ✅ ต้องใช้ .get()
+    log = request.args.get("log")
+    timestamp = request.args.get("timestamp")
+    status_code = request.args.get("status_code")
+
+    try:
+        conn = sqlite3.connect(DB_PATH)  # ✅ ต้องระบุ DB_PATH
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO set_status_text (status_text, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)""", (status_text, log, timestamp, status_code))
+        conn.commit()
+        return jsonify({"status": "success"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/set-status-text', methods=['GET'])
+def get_set_status_text():
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM set_status_text ORDER BY id DESC")
+
+            rows = cur.fetchall()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result), 200
+
+    except Exception as e:
+        print(f"❌ Error at /api/get/set-status-text: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/insert/caption-text', methods=['POST'])
 def insert_caption_text():
