@@ -21,7 +21,7 @@ def check_unused(rows_id):
     payload = { "log": log_value, "id": rows_id }
     api = f"{url}/api/update/news"
     response = requests.post(api,json=payload)
-    try:
+    try: 
         if response.status_code == 200:
             print(f"Update Status สำเร็จ!")
         else:

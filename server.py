@@ -39,7 +39,6 @@ def update_like_page_for_like_table(project):
         if conn:
             conn.close()
 
-
 #=========================================================================
 # link page for id page table
 @app.route('/api/update/<project>/link-page-for-id-page', methods=['POST'])
@@ -1458,6 +1457,10 @@ def scan_dbs():
 @app.route('/')
 def index():
     return jsonify(list(db_files.keys()))
+
+@app.route('/index')
+def index_page():
+    return send_from_directory('.','index.html')
 
 @app.route('/dashboard')
 def dashboard():
