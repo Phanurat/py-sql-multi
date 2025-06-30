@@ -1039,6 +1039,43 @@ init_db()
 #==============================================================================================================
 
 #======================================================================
+@app.route('/api/insert/comments-gen', methods=['POST'])
+def insert_comments_gen():
+    comment_text = request.args.get("comment_text")
+    log = request.args.get("log")
+    timestamp = request.args.get("timestamp")
+    status_code = request.args.get("status_code")
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO comments_gen (comment_text, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)
+        """, (comment_text, log, timestamp, status_code))
+        conn.commit()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/comments-get', methods=['GET'])
+def get_comments_gen():
+    try:
+        with sqlite3.connect(DB_PATH) as conn:
+            conn.row_factory = sqlite3.Row
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM comments_gen ORDER BY comment_id DESC")
+            rows = cur.fetchall()
+        result = [dict(row) for row in rows]
+        return jsonify(result), 200
+    except Exception as e:
+        print(f"❌ Error at /api/get/comments-get: {e}")
+
 @app.route('/api/insert/unsubscribe-id', methods=['POST'])
 def insert_unsubscribe_id():
     unsubscribe_id = request.args.get("unsubscribee_id")

@@ -275,6 +275,18 @@ def run_like_and_comment(row, project, rows_id):
 
     time.sleep(1)
 
+def check_like_and_comments():
+    try:
+        response = requests.get(f"{url}/api/get/comments-get")
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print("❌ Error fetching comments:", response.status_code, response.text)
+            return []
+    except Exception as e:
+        print("❌ Error fetching comments:", e)
+        return []
+
 def main():
     news_data = check_dashboards()
     unused_rows = [row for row in news_data if row.get('log') == 'unused']
@@ -336,7 +348,6 @@ def main():
 
         else:
             print(f"⚠️ ยังไม่มี handler สำหรับ status: {status} | project: {project} | rows_id: {rows_id}")
-
-
+  
 if __name__ == "__main__":
     main()
