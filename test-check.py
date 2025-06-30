@@ -1,6 +1,10 @@
 import requests
 import time
+import os
 from urllib.parse import quote_plus
+import sqlite3
+import json
+import random
 
 url = "http://127.0.0.1:5000"
 
@@ -220,7 +224,7 @@ def run_like_only(row, project, rows_id):
 
     time.sleep(1)
 
-def  run_like_comment_only(row, project, rows_id):
+def run_like_comment_only(row, project, rows_id):
     reaction = row.get("reaction", "")
     link = row.get("link", "")
 
@@ -256,37 +260,146 @@ def run_like_and_reply_comment(row, project, rows_id):
 
     time.sleep(1)
     
+def get_charactor():
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    char_db_path = os.path.join(base_dir, "./promt.db")
+    conn_prompt = sqlite3.connect(char_db_path)
+    cursor_prompt = conn_prompt.cursor()
+    cursor_prompt.execute("SELECT * FROM charactor LIMIT 1")
+    row = cursor_prompt.fetchone()
+    prompt_text = row[1]  # คอลัมน์ที่ 2 (index 1)
+    conn_prompt.close()
+    return prompt_text 
 
-def run_like_and_comment(row, project, rows_id):
-    reaction = quote_plus(str(row.get("reaction", "")))
-    link = quote_plus(str(row.get("link", "")))
+def gen_comment(prompt_text, news_text):
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse"
+    headers = {
+        "Accept": "*/*",
+        "Content-Type": "application/json",
+        "x-goog-api-key": "AIzaSyCIvoMfv-v54yLrgXaWu52t-L7eymSXFnA"
+    }
 
-    api_url = f"{url}/api/update/{project}/like-and-comment?reaction_type={reaction}&link={link}"
-
+    body = {
+    "contents": [
+        {
+            "parts": [
+                {
+                    "text": prompt_text
+                },
+                {
+                    "text": f"""จากเนื้อหาข่าว: {news_text}  สร้างคอมเมนต์ 10 คอมเมนต์  Output Format: ให้ตอบเฉพาะ 10 คำตอบแยกบรรทัด ห้ามมีเลขลำดับ (1. 2. 3.) หรือคำว่า คอมเมนต์ / ข้อความ / ข้อใด ๆ ไม่ต้องเว้นบรรทัดระหว่างกัน ให้ตอบเป็นข้อความแต่ละบรรทัด 10 บรรทัด เท่านั้น """
+                }
+            ],
+            "role": "user"
+        }
+    ],
+    "generationConfig": {
+        "temperature": 1,
+        "topP": 1,
+        "topK": 1500,
+        "maxOutputTokens": 8192
+    }
+}
     try:
-        response = requests.post(api_url)
-        if response.status_code == 200:
-            check_unused(rows_id)
-            print(f"✅ บันทึก Like and Comment สำเร็จ: {reaction} | {link}")
-        else:
-            print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
-    except Exception as e:
-        print("❌ Error POST:", e)
+        response = requests.post(url, headers=headers, json=body, stream=True)
+        print("📥 Gemini API Status:", response.status_code)
 
-    time.sleep(1)
-
-def check_like_and_comments():
-    try:
-        response = requests.get(f"{url}/api/get/comments-get")
-        if response.status_code == 200:
-            return response.json()
-        else:
-            print("❌ Error fetching comments:", response.status_code, response.text)
+        if response.status_code != 200:
+            print("❌ Gemini API response:", response.text)
             return []
+
+        full_text = ""
+
+        for line in response.iter_lines():
+            if line:
+                decoded_line = line.decode("utf-8")
+                if decoded_line.startswith("data: "):
+                    json_data = decoded_line[6:]
+                    try:
+                        parsed = json.loads(json_data)
+                        parts = parsed.get("candidates", [])[0].get("content", {}).get("parts", [])
+                        for part in parts:
+                            full_text += part.get("text", "")
+                    except Exception as e:
+                        continue  # ข้าม event ที่ไม่ใช่ JSON
+
+        # แยกบรรทัด
+        comment_lines = [line.strip() for line in full_text.split("\n") if line.strip()]
+        return comment_lines[:10]
+
     except Exception as e:
-        print("❌ Error fetching comments:", e)
+        print("❌ ERROR calling Gemini API:", e)
         return []
 
+def random_comment():
+    return [
+        { "id": 1, "comment": "เห็นแล้วอึ้งเลยครับ ไม่คิดว่าจะเกิดขึ้นจริง" },
+        { "id": 2, "comment": "เรื่องแบบนี้ต้องมีคนรับผิดชอบแล้วแหละ" },
+        { "id": 3, "comment": "ทำไมมันถึงเงียบกันขนาดนี้?" },
+        { "id": 4, "comment": "อยากให้สื่อช่วยขุดลึกกว่านี้อีก" },
+        { "id": 5, "comment": "ใครคิดเหมือนเราบ้างว่าเรื่องมันแปลกๆ" },
+        { "id": 6, "comment": "เอาใจช่วยทุกฝ่ายที่เกี่ยวข้องนะครับ" },
+        { "id": 7, "comment": "สมัยนี้อะไรๆ ก็เกิดขึ้นได้หมดจริงๆ" },
+        { "id": 8, "comment": "ถ้าไม่มีหลักฐานชัดเจนก็อย่าเพิ่งด่วนสรุปนะ" },
+        { "id": 9, "comment": "น่าติดตามต่อว่าจะจบยังไง" },
+        { "id": 10, "comment": "ไม่เชื่อว่าบังเอิญหรอก ต้องมีอะไรเบื้องหลัง" },
+        { "id": 11, "comment": "อยากให้สังคมหันมาสนใจเรื่องพวกนี้มากกว่านี้" },
+        { "id": 12, "comment": "ข่าวแบบนี้เห็นแล้วเครียดเลย" },
+        { "id": 13, "comment": "รู้สึกหมดหวังกับระบบ" },
+        { "id": 14, "comment": "อยากให้มีบทลงโทษที่จริงจังมากกว่านี้" },
+        { "id": 15, "comment": "เป็นกำลังใจให้ผู้เสียหายครับ" },
+        { "id": 16, "comment": "พวกเราต้องไม่ลืมเรื่องนี้เด็ดขาด" },
+        { "id": 17, "comment": "ทำไมคนผิดยังลอยนวลอยู่ได้?" },
+        { "id": 18, "comment": "ไม่ใช่ครั้งแรกที่เกิดเรื่องแบบนี้" },
+        { "id": 19, "comment": "สื่อควรเสนอหลายๆ มุมให้รอบด้าน" },
+        { "id": 20, "comment": "ถ้าไม่มีคนลุกขึ้นมาสู้ มันก็จะเป็นแบบนี้ไปเรื่อยๆ" }
+    ]
+
+def run_like_and_comment(row, project, rows_id):
+    print(rows_id)
+    check_list_data = check_like_and_comments()
+    unused_rows = [row for row in check_list_data if row.get('log') == 'unused']
+
+    prompt_text = get_charactor()
+    news_text = "ทดสอบระบบ"
+    comments = gen_comment(prompt_text, news_text)
+
+    total_rows = len(unused_rows)
+    if total_rows == 0:
+        print("🚫 ไม่มี row ที่ยัง unused")
+        return
+
+    for i, comment in enumerate(comments):  # comments เป็น list[str]
+        row = unused_rows[i % total_rows]
+        project = f"data{(i % total_rows) + 1}"
+
+        reaction = quote_plus(str(row.get("reaction", "")))
+        link = quote_plus(str(row.get("link", "")))
+        comment_text = quote_plus(comment)
+
+        api_url = f"{url}/api/update/{project}/like-and-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
+
+        try:
+            response = requests.post(api_url)
+            if response.status_code == 200:
+                print(f"✅ [{project}] → {comment}")
+            else:
+                print(f"❌ [{project}] → {response.status_code}: {response.text}")
+        except Exception as e:
+            print(f"❌ POST ERROR [{project}]:", e)
+
+        time.sleep(1)
+
+def check_like_and_comments():
+    url_get = f"{url}/api/get/comments-get"
+    response = requests.get(url_get)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print("❌ Error fetching comments:", response.status_code, response.text)
+        return []
+    
 def main():
     news_data = check_dashboards()
     unused_rows = [row for row in news_data if row.get('log') == 'unused']

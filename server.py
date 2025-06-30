@@ -1041,7 +1041,10 @@ init_db()
 #======================================================================
 @app.route('/api/insert/comments-gen', methods=['POST'])
 def insert_comments_gen():
-    comment_text = request.args.get("comment_text")
+    topic_content = request.args.get("topic_content")
+    link = request.args.get("link")
+    comment_text = request.args.get("comment")
+    reaction = request.args.get("reaction")
     log = request.args.get("log")
     timestamp = request.args.get("timestamp")
     status_code = request.args.get("status_code")
@@ -1051,9 +1054,9 @@ def insert_comments_gen():
         cur = conn.cursor()
 
         cur.execute("""
-            INSERT INTO comments_gen (comment_text, log, timestamp, status_code)
+            INSERT INTO comments_gen (topic_content, link ,comment, reaction, log, timestamp, status_code)
             VALUES (?, ?, ?, ?)
-        """, (comment_text, log, timestamp, status_code))
+        """, (topic_content, link, reaction, comment_text, log, timestamp, status_code))
         conn.commit()
         return jsonify({"status": "success"}), 200
     except Exception as e:
@@ -1069,7 +1072,7 @@ def get_comments_gen():
         with sqlite3.connect(DB_PATH) as conn:
             conn.row_factory = sqlite3.Row
             cur = conn.cursor()
-            cur.execute("SELECT * FROM comments_gen ORDER BY comment_id DESC")
+            cur.execute("SELECT * FROM comments_gen ORDER BY id DESC")
             rows = cur.fetchall()
         result = [dict(row) for row in rows]
         return jsonify(result), 200
