@@ -30,7 +30,7 @@
 <body class="bg-gray-50 font-sans">
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-3xl font-bold text-gray-800 mb-6">News Dashboard Control Panel</h1>
-        
+
         <div class="flex flex-wrap gap-3 mb-6">
             <a href="/dashboard"
                 class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow transition duration-300">Home</a>
@@ -150,6 +150,28 @@
         const tableBody = document.getElementById('newsTableBody');
         let count = 1;
 
+        // 🔍 ตรวจประเภทลิงก์ Facebook
+        function getFacebookLinkType(link) {
+            try {
+                const url = new URL(link);
+                const path = url.pathname;
+                const query = url.searchParams;
+
+                if (query.has("comment_id")) return "comment";
+                if (path.includes("/reel") || path.includes("/reels")) return "reel";
+                if (path.includes("/groups/") && path.includes("/permalink/")) return "group_post";
+                if (path.includes("/posts/")) return "page_post";
+                if (path.includes("/photo.php")) return "photo";
+                if (path.includes("/watch/")) return "video_watch";
+                if (path.includes("/videos/")) return "video";
+                if (path.startsWith("/profile.php")) return "profile_id";
+                if (/^\/[a-zA-Z0-9_.]+\/?$/.test(path)) return "profile_username";
+                return "unknown";
+            } catch (err) {
+                return "invalid";
+            }
+        }
+
         form.addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -159,46 +181,35 @@
             const likeValue = parseInt(document.getElementById('likeValue').value);
             const commentValue = parseInt(document.getElementById('commentValue').value);
             const timestamp = new Date().toLocaleString('th-TH');
-            // let status = document.getElementById('status').value;
+            let status = document.getElementById('status').value;
             const log = document.getElementById('log').value;
             const status_code = document.getElementById('status_code').value;
 
-            // Auto detect status
-            let status = document.getElementById('status').value;
-
+            // ✅ ตรวจประเภทลิงก์ก่อน set status
             if (status === "auto") {
-                const urlObj = new URL(link);
-                const path = urlObj.pathname;
-                const hasCommentId = urlObj.searchParams.has("comment_id");
+                const linkType = getFacebookLinkType(link);
+                console.log("🔍 ตรวจพบลิงก์ประเภท:", linkType);
 
-                // 🔎 ตรวจประเภทลิงก์
-                const isReel = path.includes("/reel") || path.includes("/reels");
-                const isComment = hasCommentId;
+                const isReel = linkType === "reel";
+                const isComment = linkType === "comment";
 
                 if (isReel) {
-                    if (commentValue > 0) {
-                        status = "like_reel_comment_reel"; // มีคอมเมนต์บนรีล
-                    } else {
-                        status = "like_reel_only"; // แค่กดไลก์ในรีล
-                    }
+                    status = commentValue > 0 ? "like_reel_comment_reel" : "like_reel_only";
                 } else if (isComment) {
-                    if (commentValue > 0) {
-                        status = "like_and_reply_comment"; // เป็นคอมเมนต์และมีข้อความตอบกลับ
-                    } else {
-                        status = "like_comment_only"; // เป็นคอมเมนต์ที่กดไลก์เฉยๆ
-                    }
+                    status = commentValue > 0 ? "like_and_reply_comment" : "like_comment_only";
                 } else {
-                    // โพสต์ปกติ
+                    // ✅ โพสต์ธรรมดา
                     if (likeValue > 0 && commentValue === 0) {
                         status = "like_only";
                     } else if (likeValue > 0 && commentValue > 0) {
                         status = "like_and_comment";
                     } else {
-                        status = "view_only"; // (ถ้ามีไว้ในระบบ)
+                        status = "view_only";
                     }
                 }
             }
 
+            // ✅ POST ไปยัง backend
             fetch('/api/insert/news', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -242,6 +253,7 @@
                 });
         });
 
+        // ✅ โหลดข้อมูลเก่า
         function fetchAndRenderNews() {
             fetch('/api/get/news')
                 .then(res => res.json())

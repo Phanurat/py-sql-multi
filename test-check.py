@@ -243,6 +243,7 @@ def run_like_comment_only(row, project, rows_id):
     time.sleep(1)
 
 def run_like_and_reply_comment(row, project, rows_id):
+    print(rows_id)
     reaction = quote_plus(str(row.get("reaction", "")))
     link = quote_plus(str(row.get("link", "")))
     comment_text = quote_plus(str(row.get("comment_text", "")))
@@ -416,10 +417,10 @@ def main():
         print(f"🔍 ตรวจ status: {status} | project: {project}")
         
         if status == 'like_and_comment':
-            run_like_and_comment(row, project, rows_id)
+            run_like_and_comment(row, project, rows_id) # API /api/<method get or insert>/comment-dashboard
 
         elif status == 'like_comment_reply_comment':
-            run_like_and_reply_comment(row, project, rows_id)
+            run_like_and_reply_comment(row, project, rows_id) # API /api/<method get or insert>/like-comment-reply-comment
 
         elif status == 'like_comment_only':
             run_like_comment_only(row, project, rows_id)
@@ -428,7 +429,7 @@ def main():
             run_like_only(row, project, rows_id)
 
         elif status == 'like_reel_comment_reel':
-            run_like_reel_comment_reel(row, project)
+            run_like_reel_comment_reel(row, project) # API /api/<method get or insert>/like-reel-comment-reel
         
         elif status == 'like_reel_only':
             run_like_reel_only(row, project, rows_id)

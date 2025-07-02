@@ -1562,8 +1562,78 @@ def get_change_bio():
     except Exception as e:
         print(f"❌ Error at /api/get/change-bio: {e}")
         return jsonify({"error": str(e)})
-    
-    
+
+@app.route('/api/insert/like-comment-reply-comment', methods=['POST'])
+def insert_like_comment_reply_comment():
+    comment_reply = request.args.get('comment_reply')
+    log = request.args.get('log')
+    timestamp = request.args.get('timestamp')
+    status_code = request.args.get('status_code')
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        cur.execute("""INSERT INTO like_and_reply_comment (comment_reply, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)""", (comment_reply, log, timestamp, status_code))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"❌ Error at /api/insert/like-comment-reply-comment: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/get/like-comment-reply-comment', methods=['GET'])
+def get_like_comment_reply_comment():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM like_and_reply_comment ORDER BY id DESC")
+        rows = cur.fetchall()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error at /api/get/like-comment-reply-comment: {e}")
+
+@app.route('/api/insert/like-reel-comment-reel', methods=['POST'])
+def insert_like_reel_comment_reel():
+    comment_reel = request.args.get('comment_reel')
+    log = request.args.get('log')
+    timestamp = request.args.get('timestamp')
+    status_code = request.args.get('status_code')
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO like_reel_comment_reel (comment_reel, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)
+        """, (comment_reel, log, timestamp, status_code))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+
+    except Exception as e:
+        print(f"❌ Error at /api/insert/like-reel-comment-reel: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/get/like-reel-comment-reel', methods=['GET'])
+def get_like_reel_comment_reel():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM like_reel_comment_reel ORDER BY id DESC")
+        rows = cur.fetchall()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error at /api/get/like-reel-comment-reel: {e}")
 #======================================================================================================
 
 def scan_dbs():
