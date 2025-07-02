@@ -331,30 +331,16 @@ def gen_comment(prompt_text, news_text):
         print("❌ ERROR calling Gemini API:", e)
         return []
 
-def random_comment():
-    return [
-        { "id": 1, "comment": "เห็นแล้วอึ้งเลยครับ ไม่คิดว่าจะเกิดขึ้นจริง" },
-        { "id": 2, "comment": "เรื่องแบบนี้ต้องมีคนรับผิดชอบแล้วแหละ" },
-        { "id": 3, "comment": "ทำไมมันถึงเงียบกันขนาดนี้?" },
-        { "id": 4, "comment": "อยากให้สื่อช่วยขุดลึกกว่านี้อีก" },
-        { "id": 5, "comment": "ใครคิดเหมือนเราบ้างว่าเรื่องมันแปลกๆ" },
-        { "id": 6, "comment": "เอาใจช่วยทุกฝ่ายที่เกี่ยวข้องนะครับ" },
-        { "id": 7, "comment": "สมัยนี้อะไรๆ ก็เกิดขึ้นได้หมดจริงๆ" },
-        { "id": 8, "comment": "ถ้าไม่มีหลักฐานชัดเจนก็อย่าเพิ่งด่วนสรุปนะ" },
-        { "id": 9, "comment": "น่าติดตามต่อว่าจะจบยังไง" },
-        { "id": 10, "comment": "ไม่เชื่อว่าบังเอิญหรอก ต้องมีอะไรเบื้องหลัง" },
-        { "id": 11, "comment": "อยากให้สังคมหันมาสนใจเรื่องพวกนี้มากกว่านี้" },
-        { "id": 12, "comment": "ข่าวแบบนี้เห็นแล้วเครียดเลย" },
-        { "id": 13, "comment": "รู้สึกหมดหวังกับระบบ" },
-        { "id": 14, "comment": "อยากให้มีบทลงโทษที่จริงจังมากกว่านี้" },
-        { "id": 15, "comment": "เป็นกำลังใจให้ผู้เสียหายครับ" },
-        { "id": 16, "comment": "พวกเราต้องไม่ลืมเรื่องนี้เด็ดขาด" },
-        { "id": 17, "comment": "ทำไมคนผิดยังลอยนวลอยู่ได้?" },
-        { "id": 18, "comment": "ไม่ใช่ครั้งแรกที่เกิดเรื่องแบบนี้" },
-        { "id": 19, "comment": "สื่อควรเสนอหลายๆ มุมให้รอบด้าน" },
-        { "id": 20, "comment": "ถ้าไม่มีคนลุกขึ้นมาสู้ มันก็จะเป็นแบบนี้ไปเรื่อยๆ" }
-    ]
+def check_dashboard_comment():
+    url_get = f"{url}/api/get/comment-dashboard"
 
+    response = requests.get(url_get)
+
+    if response.status_code == 200:
+        return response
+    else:
+        return []
+    
 def run_like_and_comment(row, project, rows_id):
     print(rows_id)
     check_list_data = check_like_and_comments()
@@ -369,7 +355,7 @@ def run_like_and_comment(row, project, rows_id):
         print("🚫 ไม่มี row ที่ยัง unused")
         return
 
-    for i, comment in enumerate(comments):  # comments เป็น list[str]
+    for i, comment in enumerate(comments):
         row = unused_rows[i % total_rows]
         project = f"data{(i % total_rows) + 1}"
 
@@ -377,19 +363,31 @@ def run_like_and_comment(row, project, rows_id):
         link = quote_plus(str(row.get("link", "")))
         comment_text = quote_plus(comment)
 
-        api_url = f"{url}/api/update/{project}/like-and-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
+        # 1. INSERT comment ลง dashboard
+        insert_url = f"{url}/api/insert/comment-dashboard?comment={comment_text}&log=unused&link={link}&topic={quote_plus(news_text)}&reaction={reaction}"
+        try:
+            response = requests.post(insert_url)
+            if response.status_code == 200:
+                print(f"✅ INSERT → [{project}] {comment}")
+            else:
+                print(f"❌ INSERT FAIL → [{project}] {response.status_code}: {response.text}")
+        except Exception as e:
+            print(f"❌ EXCEPTION (insert): {e}")
+            continue
 
+        # 2. UPDATE log as like-and-comment
+        api_url = f"{url}/api/update/{project}/like-and-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
         try:
             response = requests.post(api_url)
             if response.status_code == 200:
-                print(f"✅ [{project}] → {comment}")
+                print(f"✅ UPDATE → [{project}] {comment}")
             else:
-                print(f"❌ [{project}] → {response.status_code}: {response.text}")
+                print(f"❌ UPDATE FAIL → [{project}] {response.status_code}: {response.text}")
         except Exception as e:
-            print(f"❌ POST ERROR [{project}]:", e)
+            print(f"❌ EXCEPTION (update): {e}")
 
         time.sleep(1)
-
+        
 def check_like_and_comments():
     url_get = f"{url}/api/get/comments-get"
     response = requests.get(url_get)

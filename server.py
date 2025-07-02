@@ -1485,6 +1485,85 @@ def update_news():
             conn.close()
 
 
+@app.route('/api/insert/comment-dashboard', methods=['POST'])
+def insert_comment_dashboard():
+    comment = request.args.get('comment')
+    log = request.args.get('log')
+    link = request.args.get('link')
+    topic = request.args.get('topic')
+    reaction = request.args.get('reaction')
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO comment_dashboard (comment, log, link, topic, reaction)
+            VALUES (?, ?, ?, ?, ?)""", (comment, log, link, topic, reaction))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"❌ Error at /api/insert/comment-dashboard: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/get/comment-dashboard', methods=['GET'])
+def comment_dashboard():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM comment_dashboard ORDER BY id_comment DESC")
+        rows = cur.fetchall()
+        conn.close()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error at /api/get/news: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/insert/change-bio', methods=['POST'])
+def insert_change_bio():
+    bio_intro = request.args.get('bio_intro')
+    log = request.args.get('log')
+    timestamp = request.args.get('timestamp')
+    status_code = request.args.get('status_code')
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+
+        cur.execute("""
+            INSERT INTO change_bio (bio_intro, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)
+        """, (bio_intro, log, timestamp, status_code))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"❌ Error at /api/insert/change-bio: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/get/change-bio', methods=['GET'])
+def get_change_bio():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM change_bio ORDER BY id DESC")
+        rows = cur.fetchall()
+        conn.close()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error at /api/get/change-bio: {e}")
+        return jsonify({"error": str(e)})
+    
+    
 #======================================================================================================
 
 def scan_dbs():
@@ -1541,6 +1620,10 @@ def subscribe_id():
 @app.route('/unsubscribe-id')
 def unsubscribe_id():
     return send_from_directory('.','unsubscribe_id.html')
+
+@app.route('/change-bio')
+def change_bio():
+    return send_from_directory('.','change_bio.html')
 
 @app.before_request
 def auto_scan_dbs():
