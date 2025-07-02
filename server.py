@@ -1484,7 +1484,6 @@ def update_news():
         if conn:
             conn.close()
 
-
 @app.route('/api/insert/comment-dashboard', methods=['POST'])
 def insert_comment_dashboard():
     comment = request.args.get('comment')
