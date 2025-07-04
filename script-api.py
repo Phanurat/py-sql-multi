@@ -129,7 +129,7 @@ def run_share_link(row, project, rows_id):
     api_url = f"{url}/api/update/{project}/share-link?link_link={link_link}"
     try:
         response = requests.post(api_url)
-        if response.status == 200:
+        if response.status_code == 200:
             check_unused(rows_id)
             print(f"✅ บันทึก share_link สำเร็จ: {link_link}")
         else:
@@ -145,7 +145,7 @@ def run_set_status_text(row, project, rows_id):
     api_url = f"{url}/api/update/{project}/set-status-text?status_text={status_text}"
     try:
         response = requests.post(api_url)
-        if response.status == 200:
+        if response.status_code == 200:
             check_unused(rows_id)
             print(f"✅ บันทึก set_status_text สำเร็จ: {status_text}")
         else:
@@ -161,7 +161,7 @@ def run_pic_caption_text(row, project, rows_id):
     api_url = f"{url}/api/update/{project}/pic-caption-text?status_text={status_text}"
     try:
         response = requests.post(api_url)
-        if response.status == 200:
+        if response.status_code == 200:
             check_unused(rows_id)
             print(f"✅ บันทึก pic_caption_text สำเร็จ: {status_text}")
         else:
@@ -178,7 +178,7 @@ def run_like_reel_only(row, project, rows_id):
     api_url = f"{url}/api/update/{project}/like-reel-only?reaction_type={reaction}&link={link}"
     try:
         response = requests.post(api_url)
-        if response.status == 200:
+        if response.status_code == 200:
             check_unused(rows_id)
             print(f"✅ บันทึก like_reel_only สำเร็จ: {reaction} | {link}")
         else:
@@ -201,27 +201,28 @@ def check_like_reel_comment_reel():
 def run_like_reel_comment_reel(row, project, rows_id):
     print(rows_id)
     check_list_data = check_like_reel_comment_reel()
-    unused_rows = [row for row in check_list_data if row.get('log') == 'unused']
+    unused_rows = [r for r in check_list_data if r.get('log') == 'unused']
+    
+    if not unused_rows:
+        print("🚫 ไม่มี row ที่ยัง unused")
+        return
 
     prompt_text = get_charactor()
-    news_text = "ทดสอบระบบ"
+    news_text = row.get("topic", "ไม่มีหัวข้อข่าว")
     comments = gen_comment(prompt_text, news_text)
 
     total_rows = len(unused_rows)
-    if total_rows == 0:
-        print("🚫 ไม่มี row ที่ยัง unused")
-        return
-    
-    for i, comments in enumerate(comments):
-        row = unused_rows[i % total_rows]
+
+    for i, comment in enumerate(comments):
+        target_row = unused_rows[i % total_rows]
         project = f"data{(i % total_rows) + 1}"
 
-        reaction = quote_plus(str(row.get("reaction", "")))
-        link = quote_plus(str(row.get("link", "")))
-        comment_text = quote_plus(str(row.get("comment_text", "")))
+        reaction = quote_plus(str(target_row.get("reaction", "")))
+        link = quote_plus(str(target_row.get("link", "")))
+        comment_text = quote_plus(comment)
 
-        insert_url = f"{url}/api/update/{project}/like-reel-comment-reel?comment={comment_text}&log=unused&link={link}&topic={quote_plus(news_text)}&reaction={reaction}"
-        
+        # ✅ INSERT
+        insert_url = f"{url}/api/insert/like-reel-comment-reel?comment={comment_text}&log=unused&link={link}&topic={quote_plus(news_text)}&reaction={reaction}"
         try:
             response = requests.post(insert_url)
             if response.status_code == 200:
@@ -232,19 +233,64 @@ def run_like_reel_comment_reel(row, project, rows_id):
             print(f"❌ EXCEPTION (insert): {e}")
             continue
 
-        api_url = f"{url}/api/update/{project}/like-reel-and-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
+        time.sleep(1)
 
+        # ✅ UPDATE
+        raw_reaction = target_row.get("reaction", "")
+        raw_link = target_row.get("link", "")
+        raw_comment = comment
+
+        api_url = f"{url}/api/update/{project}/like-reel-and-comment?reaction_type={quote_plus(raw_reaction)}&link={quote_plus(raw_link)}&comment_text={quote_plus(raw_comment)}"
         try:
             response = requests.post(api_url)
             if response.status_code == 200:
-                print(f"✅ UPDATE → [{project}] {comments}")
+                check_unused(rows_id)
+                print(f"✅ บันทึก like_reel_comment_reel สำเร็จ: {raw_reaction} | {raw_link} | {raw_comment}")
             else:
-                print(f"❌ UPDATE FAIL → [{project}] {response.status_code}: {response.text}")
+                print(f"❌ UPDATE FAIL: {response.status_code} → {response.text}")
         except Exception as e:
-            print(f"❌ EXCEPTION (update): {e}")
+            print("❌ Error POST:", e)
 
-    
+        time.sleep(1)
 
+    # print(rows_id)
+    # check_list_data = check_like_reel_comment_reel()
+    # unused_rows = [r for r in check_list_data if r.get('log') == 'unused']
+
+    # if not unused_rows:
+    #     print("🚫 ไม่มี row ที่ยัง unused")
+    #     return
+
+    # for i, r in enumerate(unused_rows):
+    #     project = f"data{(i % len(unused_rows)) + 1}"
+
+    #     reaction = quote_plus(str(r.get("reaction", "")))
+    #     link = quote_plus(str(r.get("link", "")))
+    #     comment_text = quote_plus(str(r.get("comment_reel", "")))  # ใช้ field นี้แทน
+
+    #     # ✅ INSERT
+    #     insert_url = f"{url}/api/insert/{project}/like-reel-comment-reel?comment={comment_text}&log=unused&link={link}&reaction={reaction}"
+    #     try:
+    #         response = requests.post(insert_url)
+    #         if response.status_code == 200:
+    #             print(f"✅ INSERT สำเร็จ: {reaction} | {link} | {comment_text}")
+    #             update_url = f"{url}/api/update/{project}/like-reel-and-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
+    #             try:
+    #                 response = requests.post(update_url)
+    #                 if response.status_code == 200:
+    #                     print(f"✅ UPDATE → [{project}] {comment_text}")
+    #                 else:
+    #                     print(f"❌ UPDATE FAIL → [{project}] {response.status_code}: {response.text}")
+    #             except Exception as e:
+    #                 print(f"❌ EXCEPTION (update): {e}")
+    #         else:
+    #             print(f"❌ INSERT FAIL → [{project}] {response.status_code}: {response.text}")
+    #     except Exception as e:
+    #         print(f"❌ EXCEPTION (insert): {e}")
+    #         continue
+
+    #     # ✅ UPDATE (บันทึก status)
+    #     time.sleep(1)
 
         # reaction = row.get("reaction", "")
         # link = row.get("link", "")
@@ -300,7 +346,7 @@ def run_like_comment_only(row, project, rows_id):
     time.sleep(1)
 
 def check_like_and_reply_comment():
-    url_get = f"{url}/api/get/like-comment-reply-comment"
+    url_get = f"{url}/api/get/news"
     response = requests.get(url_get)
 
     if response.status_code == 200:
@@ -311,27 +357,32 @@ def check_like_and_reply_comment():
 
 def run_like_and_reply_comment(row, project, rows_id):
     print(rows_id)
-    check_list_data = check_like_and_reply_comment()
-    unused_rows = [row for row in check_list_data if row.get('log') == 'unused']
 
+    # ✅ ดึงรายการที่ยัง unused
+    check_list_data = check_like_and_reply_comment()
+    unused_rows = [r for r in check_list_data if r.get('log') == 'unused']
+
+    if not unused_rows:
+        print("🚫 ไม่มี row ที่ยัง unused")
+        return
+
+    # ✅ เตรียม prompt + ข่าว
     prompt_text = get_charactor()
-    news_text = "ทดสอบระบบ"
+    news_text = row.get("topic", "ไม่มีหัวข้อข่าว")
     comments = gen_comment(prompt_text, news_text)
 
     total_rows = len(unused_rows)
-    if total_rows == 0:
-        print("🚫 ไม่มี row ที่ยัง unused")
-        return
-    
-    for i, comments in enumerate(comments):
-        row = unused_rows[i % total_rows]
-        project = f"data{(i % total_rows) + 1}"
-    
-        reaction = quote_plus(str(row.get("reaction", "")))
-        link = quote_plus(str(row.get("link", "")))
-        comment_text = quote_plus(str(row.get("comment_text", "")))
 
-        insert_url = f"{url}/api/update/{project}/like-comment-reply-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
+    for i, comment in enumerate(comments):
+        target_row = unused_rows[i % total_rows]
+        project = f"data{(i % total_rows) + 1}"
+
+        reaction = quote_plus(str(target_row.get("reaction", "")))
+        link = quote_plus(str(target_row.get("link", "")))
+        comment_text = quote_plus(comment)
+
+        # ✅ INSERT
+        insert_url = f"{url}/api/insert/like-comment-reply-comment?comment={comment_text}&log=unused&link={link}&topic={quote_plus(news_text)}&reaction={reaction}"
         try:
             response = requests.post(insert_url)
             if response.status_code == 200:
@@ -342,18 +393,26 @@ def run_like_and_reply_comment(row, project, rows_id):
             print(f"❌ EXCEPTION (insert): {e}")
             continue
 
-        api_url = f"{url}/api/update/{project}/like-comment-reply-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
+        time.sleep(1)
+
+        # ✅ UPDATE
+        raw_reaction = target_row.get("reaction", "")
+        raw_link = target_row.get("link", "")
+        raw_comment = comment
+
+        api_url = f"{url}/api/update/{project}/like-comment-reply-comment?reaction_type={quote_plus(raw_reaction)}&link={quote_plus(raw_link)}&comment_text={quote_plus(raw_comment)}"
         try:
             response = requests.post(api_url)
             if response.status_code == 200:
-                print(f"✅ UPDATE → [{project}] {comments}")
+                check_unused(rows_id)
+                print(f"✅ บันทึก like_comment_reply_comment สำเร็จ: {raw_reaction} | {raw_link} | {raw_comment}")
             else:
-                print(f"❌ UPDATE FAIL → [{project}] {response.status_code}: {response.text}")
+                print(f"❌ UPDATE FAIL: {response.status_code} → {response.text}")
         except Exception as e:
             print(f"❌ EXCEPTION (update): {e}")
 
         time.sleep(1)
-
+    
         # print(rows_id)
         # reaction = quote_plus(str(row.get("reaction", "")))
         # link = quote_plus(str(row.get("link", "")))
@@ -455,53 +514,74 @@ def check_dashboard_comment():
     
 def run_like_and_comment(row, project, rows_id):
     print(rows_id)
+
+    # ✅ ดึงข้อมูล unused จาก API
     check_list_data = check_like_and_comments()
-    unused_rows = [row for row in check_list_data if row.get('log') == 'unused']
+    unused_rows = [r for r in check_list_data if r.get('log') == 'unused']
 
-    prompt_text = get_charactor()
-    news_text = "ทดสอบระบบ"
-    comments = gen_comment(prompt_text, news_text)
-
-    total_rows = len(unused_rows)
-    if total_rows == 0:
+    if not unused_rows:
         print("🚫 ไม่มี row ที่ยัง unused")
         return
 
+    # ✅ เตรียม prompt และข่าว
+    prompt_text = get_charactor()
+    news_text = row.get("topic", "ไม่มีหัวข้อข่าว")
+    comments = gen_comment(prompt_text, news_text)
+
+    total_rows = len(unused_rows)
+
     for i, comment in enumerate(comments):
-        row = unused_rows[i % total_rows]
+        target_row = unused_rows[i % total_rows]
         project = f"data{(i % total_rows) + 1}"
 
-        reaction = quote_plus(str(row.get("reaction", "")))
-        link = quote_plus(str(row.get("link", "")))
+        reaction = quote_plus(str(target_row.get("reaction", "")))
+        link = quote_plus(str(target_row.get("link", "")))
         comment_text = quote_plus(comment)
 
-        # 1. INSERT comment ลง dashboard
+        # ✅ INSERT → /api/insert/comment-dashboard
         insert_url = f"{url}/api/insert/comment-dashboard?comment={comment_text}&log=unused&link={link}&topic={quote_plus(news_text)}&reaction={reaction}"
         try:
             response = requests.post(insert_url)
             if response.status_code == 200:
-                print(f"✅ INSERT → [{project}] {comment}")
+                print(f"✅ INSERT สำเร็จ: {reaction} | {link} | {comment_text}")
             else:
                 print(f"❌ INSERT FAIL → [{project}] {response.status_code}: {response.text}")
         except Exception as e:
             print(f"❌ EXCEPTION (insert): {e}")
             continue
 
-        # 2. UPDATE log as like-and-comment
+        time.sleep(1)
+
+        # ✅ UPDATE → /api/update/dataX/like-and-comment
         api_url = f"{url}/api/update/{project}/like-and-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
         try:
             response = requests.post(api_url)
             if response.status_code == 200:
-                print(f"✅ UPDATE → [{project}] {comment}")
+                check_unused(rows_id)
+                print(f"✅ บันทึก like_and_comment สำเร็จ: {reaction} | {link} | {comment_text}")
             else:
-                print(f"❌ UPDATE FAIL → [{project}] {response.status_code}: {response.text}")
+                print(f"❌ UPDATE FAIL: {response.status_code} → {response.text}")
         except Exception as e:
-            print(f"❌ EXCEPTION (update): {e}")
+            print("❌ Error POST:", e)
 
         time.sleep(1)
+
+
+        # ✅ UPDATE log as like-and-comment
+        # api_url = f"{url}/api/update/{project}/like-and-comment?reaction_type={reaction}&link={link}&comment_text={comment_text}"
+        # try:
+        #     response = requests.post(api_url)
+        #     if response.status_code == 200:
+        #         print(f"✅ UPDATE → [{project}] {comment}")
+        #     else:
+        #         print(f"❌ UPDATE FAIL → [{project}] {response.status_code}: {response.text}")
+        # except Exception as e:
+        #     print(f"❌ EXCEPTION (update): {e}")
+
+        # time.sleep(1)
         
 def check_like_and_comments():
-    url_get = f"{url}/api/get/comments-get"
+    url_get = f"{url}/api/get/news"
     response = requests.get(url_get)
 
     if response.status_code == 200:
@@ -530,7 +610,7 @@ def main():
         if status == 'like_and_comment':
             run_like_and_comment(row, project, rows_id) # API /api/<method get or insert>/comment-dashboard
 
-        elif status == 'like_comment_reply_comment':
+        elif status == 'like_and_reply_comment':
             run_like_and_reply_comment(row, project, rows_id) # API /api/<method get or insert>/like-comment-reply-comment
 
         elif status == 'like_comment_only':
@@ -540,7 +620,7 @@ def main():
             run_like_only(row, project, rows_id)
 
         elif status == 'like_reel_comment_reel':
-            run_like_reel_comment_reel(row, project) # API /api/<method get or insert>/like-reel-comment-reel
+            run_like_reel_comment_reel(row, project, rows_id) # API /api/<method get or insert>/like-reel-comment-reel
         
         elif status == 'like_reel_only':
             run_like_reel_only(row, project, rows_id)

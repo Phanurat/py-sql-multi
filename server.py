@@ -1564,17 +1564,20 @@ def get_change_bio():
 
 @app.route('/api/insert/like-comment-reply-comment', methods=['POST'])
 def insert_like_comment_reply_comment():
-    comment_reply = request.args.get('comment_reply')
+    topic = request.args.get('topic')
+    link = request.args.get('link')
+    comment = request.args.get('comment')
     log = request.args.get('log')
-    timestamp = request.args.get('timestamp')
-    status_code = request.args.get('status_code')
+    reaction = request.args.get('reaction')
+    # timestamp = request.args.get('timestamp')
+    # status_code = request.args.get('status_code')
 
     try:
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
 
-        cur.execute("""INSERT INTO like_and_reply_comment (comment_reply, log, timestamp, status_code)
-            VALUES (?, ?, ?, ?)""", (comment_reply, log, timestamp, status_code))
+        cur.execute("""INSERT INTO like_and_reply_comment (topic, link, comment, log, reaction)
+            VALUES (?, ?, ?, ?, ?)""", (topic, link, comment, log, reaction))
         
         conn.commit()
         conn.close()
@@ -1599,19 +1602,26 @@ def get_like_comment_reply_comment():
 
 @app.route('/api/insert/like-reel-comment-reel', methods=['POST'])
 def insert_like_reel_comment_reel():
-    comment_reel = request.args.get('comment_reel')
+    # comment_reel = request.args.get('comment_reel')
+    # log = request.args.get('log')
+    # timestamp = request.args.get('timestamp')
+    # status_code = request.args.get('status_code')
+    # id_comment = request.args.get('id_comment')
+    topic = request.args.get('topic')
+    link = request.args.get('link')
+    comment = request.args.get('comment')
     log = request.args.get('log')
-    timestamp = request.args.get('timestamp')
-    status_code = request.args.get('status_code')
+    reaction = request.args.get('reaction')
+
 
     try:
         conn = sqlite3.connect(DB_PATH)
         cur = conn.cursor()
 
         cur.execute("""
-            INSERT INTO like_reel_comment_reel (comment_reel, log, timestamp, status_code)
-            VALUES (?, ?, ?, ?)
-        """, (comment_reel, log, timestamp, status_code))
+            INSERT INTO like_reel_comment_reel_dashboard (topic, link, comment, log, reaction)
+            VALUES (?, ?, ?, ?, ?)
+        """, (topic, link, comment, log, reaction))
         conn.commit()
         conn.close()
         return jsonify({"status": "success"}), 200
@@ -1626,7 +1636,7 @@ def get_like_reel_comment_reel():
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cur = conn.cursor()
-        cur.execute("SELECT * FROM like_reel_comment_reel ORDER BY id DESC")
+        cur.execute("SELECT * FROM like_reel_comment_reel_dashboard ORDER BY id_comment DESC")
         rows = cur.fetchall()
 
         result = [dict(row) for row in rows]
