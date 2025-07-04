@@ -1643,6 +1643,43 @@ def get_like_reel_comment_reel():
         return jsonify(result)
     except Exception as e:
         print(f"❌ Error at /api/get/like-reel-comment-reel: {e}")
+
+
+@app.route('/api/get/join-group', methods=['GET'])
+def get_join_group():
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM join_group ORDER BY id DESC")
+        rows = cur.fetchall()
+
+        result = [dict(row) for row in rows]
+        return jsonify(result)
+    except Exception as e:
+        print(f"❌ Error at /api/get/like-reel-comment-reel: {e}")
+
+@app.route('/api/insert/join-group', methods=['POST'])
+def insert_join_group():
+    group_id = request.args.get('group_id')
+    log = request.args.get('log')
+    timestamp = request.args.get('timestamp')
+    status_code = request.args.get('status_code')
+
+    try:
+        conn = sqlite3.connect(DB_PATH)
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO join_group (group_id, log, timestamp, status_code)
+            VALUES (?, ?, ?, ?)
+        """, (group_id, log, timestamp, status_code))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+
+    except Exception as e:
+        print(f"❌ Error at /api/insert/join-group: {e}")
+        return jsonify({"error": str(e)}), 500
 #======================================================================================================
 
 def scan_dbs():

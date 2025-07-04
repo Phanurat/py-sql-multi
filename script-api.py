@@ -643,12 +643,18 @@ def main():
         elif status == "unsubscribee_id":
             run_unsubscribee_id(row, project, rows_id)
         
-        elif status == "group_id":
-            run_group_id(row, project, rows_id)
+        # elif status == "group_id":
+        #     run_group_id(row, project, rows_id)
         
         elif status == "link-page-for-id-page":
             run_link_page_for_id_page(row, project, rows_id)
-
+        
+        elif status == "join-group":
+            run_group_id(row, project, rows_id)
+        
+        elif status == "leave-group":
+            run_group_id(row, project, rows_id)
+            
         else:
             print(f"⚠️ ยังไม่มี handler สำหรับ status: {status} | project: {project} | rows_id: {rows_id}")
   
