@@ -296,7 +296,7 @@ def main():
                 print("❌ Error POST:", e)
             time.sleep(1)
             
-        elif status == 'unsubscribe_id':
+        elif status == 'unsubscribe':
             unsubscribee_id = row.get("link", "")
 
             api_insert = f"{url}/api/update/{project}/unsubscribee-id?unsubscribee_id={unsubscribee_id}"
@@ -312,10 +312,10 @@ def main():
                 print("❌ Error POST:", e)
             time.sleep(1)
 
-        elif status == 'share_link':
-            link_link = requests.get("link", "")
+        elif status == 'shared_link':
+            link_link = row.get("link", "")
 
-            api_insert = f"{url}/api/update/{project}/share-link?link_link={link_link}"
+            api_insert = f"{url}/api/update/{project}/shared-link?link_link={quote_plus(link_link)}"
             
             try:
                 response = requests.post(api_insert)
@@ -328,11 +328,11 @@ def main():
                 print("❌ Error POST:", e)
             time.sleep(1)
 
-        elif status == 'share_link_text':
+        elif status == 'shared_link_text':
             status_text = "ทดสอบข้อความ"
-            status_link = requests.get("link", "")
+            status_link = row.get("link", "")
 
-            api_insert = f"{url}/api/update/{project}/share-link-text?status_text={status}&status_link={status_link}"
+            api_insert = f"{url}/api/update/{project}/shared-link-text?status_text={status}&status_link={status_link}"
             
             try:
                 response = requests.post(api_insert)
