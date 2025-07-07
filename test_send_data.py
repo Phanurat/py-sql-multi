@@ -412,6 +412,25 @@ def main():
         else:
             print(f"⚠️ ยังไม่มี handler สำหรับ status: {status} | project: {project} | rows_id: {rows_id}")
 
+def main_loop():
+    while True:
+        news_data = check_dashboards()
+        unused_rows = [row for row in news_data if row.get('log') == 'unused']
+
+        if unused_rows:
+            print(f"\n📌 พบ {len(unused_rows)} รายการที่ log = 'unused'")
+            main()  # เรียก main() ที่ทำการประมวลผลตาม status
+            time.sleep(10)
+        else:
+            print("🕐 ยังไม่พบรายการใหม่ รอ 10 วินาที...")
+            time.sleep(10)
+
 if __name__ == "__main__":
-    main()
+    while True:
+        try:
+            main_loop()
+        except Exception as e:
+            print("❌ เกิดข้อผิดพลาดใน main_loop:", e)
+            print("🔁 รอสักครู่แล้วลองใหม่...")
+            time.sleep(5)
     
