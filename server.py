@@ -8,6 +8,238 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 db_files = {}
 DB_PATH = "news.db"
+
+#=========================================================================
+# subcribe
+@app.route('/api/update/<project>/subscribe-id', methods=['POST'])
+def update_subscribe_project(project):
+    db_path = db_files.get(project)
+    subscribee_id = request.args.get("subscribee_id")
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM subscribee_id_table")
+
+        cur.execute("""
+            INSERT INTO subscribee_id_table (subscribee_id)
+            VALUES (?)
+        """, (subscribee_id,))
+
+        conn.commit()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        print(f"❌ Error at /api/update/{project}/subscribe-id:", e)
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/<project>/subcribe', methods=['GET'])
+def get_subcribe_project(project):
+    db_path = db_files.get(project)
+    
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM subscribee_id_table")
+        rows = cur.fetchall()
+
+        return jsonify({"subscribee_id_table":rows[0] if rows else None})
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+    
+#=========================================================================
+# shared_link_table
+@app.route('/api/update/<project>/shared-link-text', methods=['POST'])
+def update_shared_link_text_project(project):
+    status_text = request.args.get("status_text")
+    status_link = request.args.get("status_link")
+    db_path = db_files.get(project)
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM shared_link_text_table")
+        cur.execute("""
+            INSERT INTO shared_link_text_table (status_text, status_link)
+            VALUES (?, ?)
+        """, (status_text, status_link))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/<project>/shared-link-text', methods=['GET'])
+def get_shared_link_text_project(project):
+    db_path = db_files.get(project)
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+    
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM shared_link_text_table")
+        rows = cur.fetchall()
+        conn.close()
+
+        return jsonify({"shared like text":rows[0] if rows else None})
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+        
+#=========================================================================
+# like_and_comment_reply_comment_project
+@app.route('/api/update/<project>/like-and-comment-reply-comment', methods=["POST"])
+def update_like_and_comment_reply_comment_project(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+    comment_text = request.args.get("comment_text")
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM like_comment_and_reply_comment_table")
+        cur.execute("""
+            INSERT INTO like_comment_and_reply_comment_table (reaction_type, link, comment_text)
+            VALUES (?, ?, ?)
+        """, (reaction_type, link, comment_text))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/<project>/like-and-comment-reply-comment', methods=['GET'])
+def get_like_and_comment_reply_comment(project):
+    db_path = db_files.get(project)
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM like_comment_and_reply_comment_table")
+        rows = cur.fetchall()
+        conn.close()
+
+        return jsonify({"like_reel_and_comment_reel_table":rows[0] if rows else None})
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
+#=========================================================================
+# like_and_comment_proejct
+@app.route('/api/update/<project>/like-and-comment', methods=['POST'])
+def update_like_and_comment_project(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+    comment_text = request.args.get("comment_text")
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM like_and_comment_table")
+        cur.execute("""
+            INSERT INTO like_and_comment_table (reaction_type, link, comment_text)
+            VALUES (?, ?, ?)
+        """, (reaction_type, link, comment_text))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/<project>/like-and-comment', methods=['GET'])
+def get_like_and_comment(project):
+    db_path = db_files.get(project)
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        
+        cur.execute("SELECT * FROM like_and_comment_table")
+        rows = cur.fetchall()
+        conn.close()
+        
+        return jsonify({"like_reel_and_comment_reel_table":rows[0] if rows else None})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+#=========================================================================
+# like_reel_and_comment_reel_table
+@app.route('/api/update/<project>/like-reel-and-comment-reel', methods=['POST'])
+def update_like_reel_and_comment_reel(project):
+    db_path = db_files.get(project)
+    reaction_type = request.args.get("reaction_type")
+    link = request.args.get("link")
+    comment_text = request.args.get("comment_text")
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+        cur.execute("DELETE FROM like_reel_and_comment_reel_table")
+        cur.execute("""
+            INSERT INTO like_reel_and_comment_reel_table (reaction_type, link, comment_text)
+            VALUES (?, ?, ?)
+        """, (reaction_type, link, comment_text))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+@app.route('/api/get/<project>/like-reel-and-comment-reel', methods=['GET'])
+def get_like_reel_and_comment_reel(project):
+    db_path = db_files.get(project)
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM like_reel_and_comment_reel_table")
+        rows = cur.fetchall()
+        conn.close()
+        
+        return jsonify({"like_reel_and_comment_reel_table":rows[0] if rows else None})
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
 #=========================================================================
 # like page for like table 
 @app.route('/api/update/<project>/link-page-for-like', methods=['POST'])
@@ -1107,6 +1339,7 @@ def insert_unsubscribe_id():
             VALUES (?, ?, ?, ?)
         """,(unsubscribe_id, log, timestamp, status_code))
         conn.commit()
+        conn.close()
         return jsonify({"status": "success"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

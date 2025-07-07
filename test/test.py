@@ -142,82 +142,82 @@ def main():
         if status == 'like_and_comment':
             pass
             print("like and comment")
-            # promt_text = get_charactor()
-            # topic_news = row.get("topic")
+            promt_text = get_charactor()
+            topic_news = row.get("topic")
 
-            # print(promt_text)
-            # print(topic_news)
+            print(promt_text)
+            print(topic_news)
 
-            # comments = generate_comment(promt_text, topic_news)
+            comments = generate_comment(promt_text, topic_news)
 
-            # print(comments)
+            print(comments)
 
-            # for i in comments:
-            #     print("Comment =>", i)
+            for i in comments:
+                print("Comment =>", i)
 
-            #     insert_comment = f"{url}/api/insert/comment-dashboard?comment={quote_plus(i)}&log=unused&link={quote_plus(row.get('link'))}&topic={quote_plus(topic_news)}&reaction={quote_plus(row.get('reaction'))}"
-            #     try:
-            #         response = requests.post(insert_comment)
-            #         if response.status_code == 200:
-            #             print(f"✅ INSERT สำเร็จ: {i}")
-            #         else:
-            #             print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
+                insert_comment = f"{url}/api/insert/comment-dashboard?comment={quote_plus(i)}&log=unused&link={quote_plus(row.get('link'))}&topic={quote_plus(topic_news)}&reaction={quote_plus(row.get('reaction'))}"
+                try:
+                    response = requests.post(insert_comment)
+                    if response.status_code == 200:
+                        print(f"✅ INSERT สำเร็จ: {i}")
+                    else:
+                        print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
                 
-            #     except Exception as e:
-            #         print("❌ Error POST:", e)
-            #     time.sleep(1)            
+                except Exception as e:
+                    print("❌ Error POST:", e)
+                time.sleep(1)            
 
         elif status == 'like_and_reply_comment':
             pass
             print("like and reply comment")
-            # promt_text = get_charactor()
-            # topic_news = row.get("topic", "")
-            # print(promt_text)
-            # print(topic_news)
+            promt_text = get_charactor()
+            topic_news = row.get("topic", "")
+            print(promt_text)
+            print(topic_news)
 
-            # comments = generate_comment(promt_text, topic_news)
+            comments = generate_comment(promt_text, topic_news)
 
-            # print(comments)
+            print(comments)
 
-            # for i in comments:
-            #     print("Comment =>", i)
+            for i in comments:
+                print("Comment =>", i)
 
-            #     insert_comment = f"{url}/api/insert/like-comment-reply-comment?comment={quote_plus(i)}&log=unused&link={quote_plus(row.get('link'))}&topic={quote_plus(topic_news)}&reaction={quote_plus(row.get('reaction'))}"
-            #     try:
-            #         response = requests.post(insert_comment)
-            #         if response.status_code == 200:
-            #             print(f"✅ INSERT สำเร็จ: {i}")
-            #         else:
-            #             print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
-            #     except Exception as e:
-            #         print("❌ Error POST:", e)
-            #     time.sleep(1)
+                insert_comment = f"{url}/api/insert/like-comment-reply-comment?comment={quote_plus(i)}&log=unused&link={quote_plus(row.get('link'))}&topic={quote_plus(topic_news)}&reaction={quote_plus(row.get('reaction'))}"
+                try:
+                    response = requests.post(insert_comment)
+                    if response.status_code == 200:
+                        print(f"✅ INSERT สำเร็จ: {i}")
+                    else:
+                        print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
+                except Exception as e:
+                    print("❌ Error POST:", e)
+                time.sleep(1)
         
         elif status == 'like_reel_comment_reel':
             pass
             print("like reel comment reel")
-            # promt_text = get_charactor()
-            # topic_news = row.get("topic", "")
-            # print(promt_text)
-            # print(topic_news)
+            promt_text = get_charactor()
+            topic_news = row.get("topic", "")
+            print(promt_text)
+            print(topic_news)
 
-            # comments = generate_comment(promt_text, topic_news)
+            comments = generate_comment(promt_text, topic_news)
 
-            # print(comments)
+            print(comments)
 
-            # for i in comments:
-            #     print("Comment =>", i)
+            for i in comments:
+                print("Comment =>", i)
 
-            #     insert_comment = f"{url}/api/insert/like-reel-comment-reel?comment={quote_plus(i)}&log=unused&link={quote_plus(row.get('link'))}&topic={quote_plus(topic_news)}&reaction={quote_plus(row.get('reaction'))}"
-            #     try:
-            #         response = requests.post(insert_comment)
-            #         if response.status_code == 200:
-            #             print(f"✅ INSERT สำเร็จ: {i}")
-            #         else:
-            #             print("❌ บันทึกล้มเหลว: ", response.status_code, response.text)
-            #     except Exception as e:
-            #         print("❌ Error POST:", e)
-            #     time.sleep(1)
+                insert_comment = f"{url}/api/insert/like-reel-comment-reel?comment={quote_plus(i)}&log=unused&link={quote_plus(row.get('link'))}&topic={quote_plus(topic_news)}&reaction={quote_plus(row.get('reaction'))}"
+                try:
+                    response = requests.post(insert_comment)
+                    if response.status_code == 200:
+                        print(f"✅ INSERT สำเร็จ: {i}")
+                    else:
+                        print("❌ บันทึกล้มเหลว: ", response.status_code, response.text)
+                except Exception as e:
+                    print("❌ Error POST:", e)
+                time.sleep(1)
         
         elif status == 'like_reel_only':
             reaction = row.get("reaction", "")
