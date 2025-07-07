@@ -140,7 +140,6 @@ def main():
         print(f"🔍 ตรวจ status: {status} | project: {project} | id: {rows_id}")
         
         if status == 'like_and_comment':
-            pass
             print("like and comment")
             promt_text = get_charactor()
             topic_news = row.get("topic")
@@ -163,6 +162,7 @@ def main():
                         try:
                             response = requests.post(insert_comment)
                             if response.status_code == 200:
+                                check_unused(rows_id)
                                 print(f"✅ INSERT สำเร็จ: {i}")
                             else:
                                 print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
@@ -198,6 +198,7 @@ def main():
                         try:
                             response = requests.post(insert_comment)
                             if response.status_code == 200:
+                                check_unused(rows_id)
                                 print(f"✅ INSERT สำเร็จ: {i}")
                             else:
                                 print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
@@ -232,6 +233,7 @@ def main():
                         try:
                             response = requests.post(insert_project)
                             if response.status_code == 200:
+                                check_unused(rows_id)
                                 print(f"✅ INSERT สำเร็จ: {i}")
                             else:
                                 print("❌ บันทึกล้มเหลว: ", response.status_code, response.text)
@@ -276,7 +278,6 @@ def main():
         elif status == 'like_only':
             reaction = row.get("reaction", "")
             link = row.get("link", "")
-
             api_insert = f"{url}/api/update/{project}/like-only?reaction_type={reaction}&link={link}"
             try:
                 response = requests.post(api_insert)
@@ -292,7 +293,6 @@ def main():
         elif status == 'like_page':
             reaction = row.get("reaction", "")
             link = row.get("link", "")
-
             api_insert = f"{url}/api/update/{project}/like-page?reaction_type={reaction}&link={link}"
             try:
                 response = requests.post(api_insert)
@@ -414,3 +414,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
