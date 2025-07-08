@@ -23,6 +23,10 @@ def index():
 def bio_intro():
     return send_from_directory('.','bio_intro.html')
 
+@app.route("/proxy-info")
+def proxy_info_page():
+    return send_from_directory(".", "proxy_info.html")
+
 @app.route('/change-city')
 def change_city():
     return send_from_directory('.','change_city.html')
@@ -70,7 +74,8 @@ def list_projects():
 @app.route('/api/data/<project>')
 def get_project_data(project):
     db_path = db_files.get(project)
-    if not db_path: return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
 
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
@@ -83,8 +88,27 @@ def get_project_data(project):
             cur.execute(f"SELECT * FROM {tname}")
             cols = [desc[0] for desc in cur.description]
             rows = cur.fetchall()
+
+            # ✅ Map ชื่อ table → ชื่อที่ frontend ใช้
+            mapped_keys = {
+                "proxy_table": "change_proxy_table",
+                "change_bio_table": "change_bio_table",
+                "change_city_table": "change_city_table",
+                "change_name_table": "change_name_table",
+                "switch_for_bio_profile_table": "switch_for_bio_profile_table",
+                "switch_for_lock_profile_table": "switch_for_lock_profile_table",
+                "switch_for_unlock_profile_table": "switch_for_unlock_profile_table"
+            }
+
+            # ใส่ทั้ง key ดั้งเดิม และ key ที่ frontend ใช้
             result[tname] = {"columns": cols, "rows": rows}
-        except: pass
+
+            if tname in mapped_keys:
+                result[mapped_keys[tname]] = {"columns": cols, "rows": rows}
+
+        except Exception as e:
+            print(f"[X] อ่านตาราง {tname} ล้มเหลว: {e}")
+            continue
 
     conn.close()
     return jsonify(result)
@@ -302,6 +326,70 @@ def get_switch(project, switch_table):
             row = cur.fetchone()
 
         return jsonify({column_name: row[0] if row else None})
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/update/<project>/proxy-info', methods=['POST'])
+def update_proxy_info(project):
+    db_path = db_files.get(project)
+
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    if not request.is_json:
+        return jsonify({"error": "ต้องเป็น JSON เท่านั้น"}), 400
+
+    data = request.get_json()
+    columns = data.get("columns")
+    rows = data.get("rows")
+
+    if not columns or not rows:
+        return jsonify({"error": "ไม่มี columns หรือ rows"}), 400
+
+    try:
+        with sqlite3.connect(db_path) as conn:
+            cur = conn.cursor()
+
+            # ตรวจสอบตาราง
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='proxy_table'")
+            exists = cur.fetchone()
+            if not exists:
+                return jsonify({"error": f"{project} ไม่มี proxy_table"}), 400
+
+            # เคลียร์ข้อมูลเก่า
+            cur.execute("DELETE FROM proxy_table")
+
+            # ใส่ข้อมูลใหม่ทั้งหมด
+            for row in rows:
+                values = tuple(row)
+                placeholders = ",".join(["?"] * len(columns))
+                cur.execute(f"INSERT INTO proxy_table ({','.join(columns)}) VALUES ({placeholders})", values)
+
+            conn.commit()
+
+        return jsonify({"status": "ok", "project": project, "rows": len(rows)})
+
+    except Exception as e:
+        print("❌ Error:", e)
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/get/<project>/proxy-info', methods=['GET'])
+def get_proxy_info(project):
+    db_path = db_files.get(project)
+    if not db_path:
+        return jsonify({"error": "ไม่พบโปรเจกต์"}), 404
+
+    try:
+        conn = sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM proxy_table")
+        row = cur.fetchone()
+        conn.close()
+
+        return jsonify(row)
 
     except Exception as e:
         print("❌ Error:", e)
