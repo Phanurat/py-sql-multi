@@ -116,7 +116,7 @@ def update_like_and_comment_reply_comment_project(project):
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("DELETE FROM like_comment_and_reply_comment_table")
+        # cur.execute("DELETE FROM like_comment_and_reply_comment_table")
         cur.execute("""
             INSERT INTO like_comment_and_reply_comment_table (reaction_type, link, comment_text)
             VALUES (?, ?, ?)
@@ -162,7 +162,7 @@ def update_like_and_comment_project(project):
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("DELETE FROM like_and_comment_table")
+        # cur.execute("DELETE FROM like_and_comment_table")
         cur.execute("""
             INSERT INTO like_and_comment_table (reaction_type, link, comment_text)
             VALUES (?, ?, ?)
@@ -207,7 +207,7 @@ def update_like_reel_and_comment_reel(project):
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("DELETE FROM like_reel_and_comment_reel_table")
+        # cur.execute("DELETE FROM like_reel_and_comment_reel_table")
         cur.execute("""
             INSERT INTO like_reel_and_comment_reel_table (reaction_type, link, comment_text)
             VALUES (?, ?, ?)
@@ -254,7 +254,7 @@ def update_like_page_for_like_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM link_page_for_like_table")
+        # cur.execute("DELETE FROM link_page_for_like_table")
         cur.execute("""
             INSERT INTO link_page_for_like_table (link_page)
             VALUES (?)
@@ -285,7 +285,7 @@ def update_link_page_for_id_page(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM link_page_for_id_page_table")
+        # cur.execute("DELETE FROM link_page_for_id_page_table")
         cur.execute("""
             INSERT INTO link_page_for_id_page_table (page_id)
             VALUES (?)
@@ -316,7 +316,7 @@ def update_group_id_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM group_id_table")
+        # cur.execute("DELETE FROM group_id_table")
         cur.execute("""INSERT INTO group_id_table (group_id)
             VALUES (?)""", (group_id,))
         conn.commit()
@@ -345,7 +345,7 @@ def update_unsubscribee_id_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM unsubscribee_id_table")
+        # cur.execute("DELETE FROM unsubscribee_id_table")
 
         cur.execute("""
             INSERT INTO unsubscribee_id_table (unsubscribee_id)
@@ -377,7 +377,7 @@ def update_subscribee_id_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM subscribee_id_table")
+        # cur.execute("DELETE FROM subscribee_id_table")
 
         cur.execute("""INSERT INTO subscribee_id_table (subscribee_id)
             VALUES (?)""", (subscribee_id,))
@@ -408,7 +408,7 @@ def update_share_link_link_text_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM shared_link_text_table")
+        # cur.execute("DELETE FROM shared_link_text_table")
         cur.execute("""INSERT INTO shared_link_text_table (status_text, status_link)
             VALUES (?, ?)""", (status_text, status_link))
         conn.commit()
@@ -438,7 +438,7 @@ def update_share_link_link(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM shared_link_table")
+        # cur.execute("DELETE FROM shared_link_table")
         cur.execute("""INSERT INTO shared_link_table (link_link, log, timestamp, status_code) 
                 VALUES (?)""", (link_link, log, timestamp, status_code))
         conn.commit()
@@ -530,7 +530,7 @@ def like_reel_only_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM like_reel_only_table")
+        # cur.execute("DELETE FROM like_reel_only_table")
         cur = conn.cursor()
 
         cur.execute("""INSERT INTO like_reel_only_table (reaction_type, link)
@@ -562,7 +562,7 @@ def like_reel_and_comment_reel_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM like_reel_and_comment_reel_table")
+        # cur.execute("DELETE FROM like_reel_and_comment_reel_table")
         cur.execute("""INSERT INTO like_reel_and_comment_reel_table (reaction_type, link, comment_text)
             VALUES (?, ?, ?)
         """, (reaction_type, link, comment_text))
@@ -594,7 +594,7 @@ def like_only_table(project):
         cur = conn.cursor()
 
         # 🔁 ล้างข้อมูลเดิมในตารางก่อน (ถ้าต้องการเก็บแค่ 1 ค่า)
-        cur.execute("DELETE FROM like_only_table")
+        # cur.execute("DELETE FROM like_only_table")
 
         # ✅ เพิ่มข้อมูลใหม่
         cur.execute("""
@@ -626,7 +626,7 @@ def like_comment_only_table(project):
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("DELETE FROM like_comment_only_table")
+        # cur.execute("DELETE FROM like_comment_only_table")
         cur.execute("""
             INSERT INTO like_comment_only_table (reaction_type, link)
             VALUES (?, ?)
@@ -656,7 +656,7 @@ def like_comment_reply_table(project):
         cur = conn.cursor()
 
         # ลบข้อมูลเก่าทั้งหมดก่อนเพิ่มใหม่
-        cur.execute("DELETE FROM like_comment_and_reply_comment_table")
+        # cur.execute("DELETE FROM like_comment_and_reply_comment_table")
 
         # เพิ่มข้อมูลใหม่เข้าไป
         cur.execute("""
@@ -689,7 +689,7 @@ def like_and_comment_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM like_and_comment_table")
+        # cur.execute("DELETE FROM like_and_comment_table")
         cur.execute("""
             INSERT INTO like_and_comment_table (reaction_type, link)
             VALUES (?, ?)""", (reaction_type, link))
@@ -856,7 +856,7 @@ def update_like_and_comment(project):
         cur = conn.cursor()
 
         # ลบข้อมูลเก่าแล้วใส่ใหม่
-        cur.execute("DELETE FROM like_and_comment_table")
+        # cur.execute("DELETE FROM like_and_comment_table")
         cur.execute("""
             INSERT INTO like_and_comment_table (reaction_type, link, comment_text)
             VALUES (?, ?, ?)
@@ -886,7 +886,7 @@ def update_like_comment_reply_comment(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
         # ลบข้อมูลเก่าแล้วใส่ใหม่
-        cur.execute("DELETE FROM like_comment_and_reply_comment_table")
+        # cur.execute("DELETE FROM like_comment_and_reply_comment_table")
         cur.execute("""
             INSERT INTO like_comment_and_reply_comment_table (reaction_type, link, comment_text) 
             VALUES (?, ?, ?)
@@ -914,7 +914,7 @@ def update_like_comment_only(project):
         cur = conn.cursor()
 
         # ลบข้อมูลเก่าแล้วใส่ใหม่
-        cur.execute("DELETE FROM like_comment_only_table")
+        # cur.execute("DELETE FROM like_comment_only_table")
         cur.execute("""
             INSERT INTO like_comment_only_table (reaction_type, link)
             VALUES (?, ?)
@@ -941,7 +941,7 @@ def update_like_only(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
         # ลบข้อมูลเก่าแล้วใส่ใหม่
-        cur.execute("DELETE FROM like_only_table")
+        # cur.execute("DELETE FROM like_only_table")
         cur.execute("""
             INSERT INTO like_only_table (reaction_type, link)
             VALUES (?, ?)
@@ -973,7 +973,7 @@ def update_like_reel_and_comment(project):
         cur = conn.cursor()
 
         # ลบข้อมูลเก่าแล้วใส่ใหม่
-        cur.execute("DELETE FROM like_reel_and_comment_reel_table")
+        # cur.execute("DELETE FROM like_reel_and_comment_reel_table")
         cur.execute("""
                     INSERT INTO like_reel_and_comment_reel_table (reaction_type, link, comment_text)
                     VALUES (?, ?, ?)
@@ -1031,7 +1031,7 @@ def update_pic_caption_text(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM pic_caption_text_table")
+        # cur.execute("DELETE FROM pic_caption_text_table")
         cur.execute("""
             INSERT INTO pic_caption_text_table (status_text)
             VALUES (?)
@@ -1060,7 +1060,7 @@ def update_set_status_text_table(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM set_status_text_table")
+        # cur.execute("DELETE FROM set_status_text_table")
         cur.execute("""
             INSERT INTO set_status_text_table (status_text, id)
             VALUES (?, ?)
@@ -1085,7 +1085,7 @@ def update_share_link(project):
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("DELETE FROM shared_link_table")
+        # cur.execute("DELETE FROM shared_link_table")
         cur.execute("""
             INSERT INTO shared_link_table (link_link)
             VALUES (?)
@@ -1118,7 +1118,7 @@ def update_share_link_text(project):
         cur = conn.cursor()
 
         # ลบข้อมูลเก่า (ใช้แค่แถวเดียวในตาราง)
-        cur.execute("DELETE FROM shared_link_text_table")
+        # cur.execute("DELETE FROM shared_link_text_table")
 
         # เพิ่มข้อมูลใหม่
         cur.execute("""
@@ -1152,7 +1152,7 @@ def update_subscribe_id(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM subscribee_id_table")
+        # cur.execute("DELETE FROM subscribee_id_table")
         cur.execute("""
             INSERT INTO subscribee_id_table (subscribee_id)
             VALUES (?)
@@ -1177,7 +1177,7 @@ def update_unsubscribe_id(project):
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("DELETE FROM unsubscribee_id_table")
+        # cur.execute("DELETE FROM unsubscribee_id_table")
         cur.execute("""
             INSERT INTO unsubscribee_id_table (unsubscribee_id)
             VALUES (?)
@@ -1938,7 +1938,7 @@ def update_like_page(project):
     try:
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
-        cur.execute("DELETE FROM link_page_for_like_table")
+        # cur.execute("DELETE FROM link_page_for_like_table")
 
         cur.execute("""
             INSERT INTO link_page_for_like_table (link_page)
@@ -1984,7 +1984,7 @@ def update_unsubscribee_id(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM unsubscribee_id_table")
+        # cur.execute("DELETE FROM unsubscribee_id_table")
 
         cur.execute("""
             INSERT INTO unsubscribee_id_table (unsubscribee_id)
@@ -2013,7 +2013,7 @@ def update_shared_link_text(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
         
-        cur.execute("DELETE FROM shared_link_text_table")
+        # cur.execute("DELETE FROM shared_link_text_table")
         cur.execute("""
             INSERT INTO shared_link_text_table (status_text, status_link)
             VALUES (?, ?)
@@ -2040,7 +2040,7 @@ def update_shared_link(project):
         conn = sqlite3.connect(db_path)
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM shared_link_table")
+        # cur.execute("DELETE FROM shared_link_table")
         cur.execute("""
             INSERT INTO shared_link_table (link_link)
             VALUES (?)

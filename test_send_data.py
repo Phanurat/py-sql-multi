@@ -149,31 +149,51 @@ def main():
 
             comments = generate_comment(promt_text, topic_news)
 
-            print(comments)
+            if not comments:
+                print("❌ ไม่ได้คอมเมนต์จาก Gemini")
+                return
 
-            for i in comments:
-                print("Comment =>", i)
+            for project, comment in zip(project_list, comments):
+                print(f"📝 [{project}] Comment =>", comments)
 
-                insert_comment = f"{url}/api/insert/comment-dashboard?comment={quote_plus(i)}&log=unused&link={quote_plus(row.get('link'))}&topic={quote_plus(topic_news)}&reaction={quote_plus(row.get('reaction'))}"
+                insert_comment = f"{url}/api/update/{project}/like-and-comment?reaction_type={quote_plus(reaction)}&link={link}&comment_text={quote_plus(comment)}"
+
                 try:
                     response = requests.post(insert_comment)
                     if response.status_code == 200:
-                        insert_comment = f"{url}/api/update/{project}/like-and-comment?reaction_type={reaction}&link={link}&comment_text={quote_plus(i)}"
-                        try:
-                            response = requests.post(insert_comment)
-                            if response.status_code == 200:
-                                check_unused(rows_id)
-                                print(f"✅ INSERT สำเร็จ: {i}")
-                            else:
-                                print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
-                        except Exception as e:
-                            print("❌ Error POST:", e)
+                        check_unused(rows_id)
+                        print(f"✅ บันทึกสำเร็จ [{project}]: {comment}")
                     else:
                         print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
-                
                 except Exception as e:
                     print("❌ Error POST:", e)
-                time.sleep(1)            
+                time.sleep(1)
+            
+            # print(comments)
+
+            # for i in comments:
+            #     print("Comment =>", i)
+
+            #     insert_comment = f"{url}/api/insert/comment-dashboard?comment={quote_plus(i)}&log=unused&link={quote_plus(row.get('link'))}&topic={quote_plus(topic_news)}&reaction={quote_plus(row.get('reaction'))}"
+            #     try:
+            #         response = requests.post(insert_comment)
+            #         if response.status_code == 200:
+            #             insert_comment = f"{url}/api/update/{project}/like-and-comment?reaction_type={reaction}&link={link}&comment_text={quote_plus(i)}"
+            #             try:
+            #                 response = requests.post(insert_comment)
+            #                 if response.status_code == 200:
+            #                     check_unused(rows_id)
+            #                     print(f"✅ INSERT สำเร็จ: {i}")
+            #                 else:
+            #                     print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
+            #             except Exception as e:
+            #                 print("❌ Error POST:", e)
+            #         else:
+            #             print(f"❌ บันทึกล้มเหลว: {response.status_code} →", response.text)
+                
+            #     except Exception as e:
+            #         print("❌ Error POST:", e)
+            #     time.sleep(1)            
 
         elif status == 'like_and_reply_comment':
             pass
